@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+        }
+        
+        .dashboard-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.97);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header > div {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .welcome-message {
+            font-size: 24px;
+            color: #333;
+        }
+        .view-sales-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .view-sales-btn:hover {
+            background-color: #45a049;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .user-info {
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .user-info::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(45deg, 
+                rgba(255, 255, 255, 0.1) 0%, 
+                rgba(255, 255, 255, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        .user-info h2 {
+            margin: 0 0 25px 0;
+            font-size: 24px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info h2::before {
+            content: '👤';
+            font-size: 26px;
+        }
+
+        .user-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .detail-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .detail-item:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+
+        .detail-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #64ffda;
+            border-radius: 4px 0 0 4px;
+        }
+
+        .detail-item strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+        }
+
+        .detail-item span {
+            display: block;
+            font-size: 18px;
+            font-weight: 600;
+            color: #64ffda;
+        }
+
+        @media screen and (max-width: 768px) {
+            .user-info {
+                padding: 20px;
+            }
+
+            .user-details {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .detail-item {
+                padding: 15px;
+            }
+
+            .detail-item span {
+                font-size: 16px;
+            }
+        }
+
+        /* Wallet info styles */
+        .wallet-info {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .wallet-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .wallet-card {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .wallet-card.earned {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+        }
+
+        .wallet-card.credited {
+            background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+        }
+
+        .wallet-card.balance {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+        }
+
+        .wallet-amount {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .wallet-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        /* Updated ranking section styles */
+        .ranking-section {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+            padding: 25px;
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .ranking-section h2 {
+            margin: 0 0 20px 0;
+            font-size: 22px;
+            color: white;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            margin-top: 15px;
+        }
+
+        .ranking-table th {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+            border: none;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .ranking-table td {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border: none;
+            color: white;
+        }
+
+        .ranking-table tr:hover td {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.01);
+            transition: all 0.2s ease;
+        }
+
+        .ranking-table th:first-child,
+        .ranking-table td:first-child {
+            width: 60px;
+            min-width: 60px;
+        }
+
+        .ranking-table th:nth-child(2),
+        .ranking-table td:nth-child(2) {
+            min-width: 120px;
+        }
+
+        .ranking-table th:nth-child(3),
+        .ranking-table td:nth-child(3) {
+            min-width: 100px;
+        }
+
+        .ranking-table th:last-child,
+        .ranking-table td:last-child {
+            width: 80px;
+            min-width: 80px;
+        }
+
+        .rank-number {
+            font-weight: bold;
+            color: #64ffda;
+            font-size: 18px;
+        }
+
+        .current-user-row td {
+            background: rgba(100, 255, 218, 0.1) !important;
+            border-left: 3px solid #64ffda;
+        }
+
+        .ranking-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ranking-badge.top-1 .rank-number { color: gold; }
+        .ranking-badge.top-2 .rank-number { color: silver; }
+        .ranking-badge.top-3 .rank-number { color: #cd7f32; }
+
+        .incentive-amount {
+            font-weight: 500;
+            color: #64ffda;
+        }
+
+        .sales-count {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-selector select {
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 14px;
+        }
+
+        .month-selector select option {
+            background-color: #1a237e;
+            color: white;
+            padding: 8px;
+        }
+
+        .month-selector select:focus {
+            outline: none;
+            border-color: #64ffda;
+            box-shadow: 0 0 0 2px rgba(100, 255, 218, 0.2);
+        }
+
+        .month-selector label {
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .title-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .month-title {
+            font-size: 16px;
+            color: #64ffda;
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+
+        /* Updated sales section styles */
+        .sales-section {
+            margin-top: 30px;
+            background: linear-gradient(135deg, #20002c 0%, #411765 100%);
+            padding: 25px;
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .sales-section h2 {
+            margin: 0 0 20px 0;
+            font-size: 22px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sales-section h2:before {
+            content: '🏆';
+            font-size: 24px;
+        }
+
+        .sales-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .sales-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 12px;
+            margin-top: 15px;
+            min-width: 900px; /* Minimum width to prevent squishing */
+        }
+
+        .sales-table th {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 16px;
+            text-align: left;
+            font-weight: 500;
+            border: none;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sales-table td {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border: none;
+            color: white;
+        }
+
+        .sales-table tr {
+            transition: all 0.3s ease;
+        }
+
+        .sales-table tr:hover td {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .sales-table tr td:first-child {
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+
+        .sales-table tr td:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .sale-amount {
+            font-weight: 600;
+            color: #7bffd3;
+            font-size: 15px;
+        }
+
+        .sale-incentive {
+            background: rgba(123, 255, 211, 0.2);
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #7bffd3;
+            display: inline-block;
+        }
+
+        .sale-date {
+            font-size: 13px;
+            opacity: 0.9;
+            color: #c5c5c5;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sale-date:before {
+            content: '📅';
+            font-size: 14px;
+        }
+
+        .sale-product {
+            font-weight: 500;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sale-product:before {
+            content: '📦';
+            font-size: 14px;
+        }
+
+        .sale-category {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .sale-category:before {
+            content: '🏷️';
+            font-size: 12px;
+        }
+
+        /* Add these media queries at the end of the style section */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .dashboard-container {
+                padding: 15px;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .welcome-message {
+                font-size: 20px;
+            }
+
+            .user-details {
+                grid-template-columns: 1fr;
+            }
+
+            .wallet-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .ranking-table {
+                table-layout: fixed;
+                width: 100%;
+            }
+
+            .ranking-table th,
+            .ranking-table td {
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .ranking-section {
+                width: 100%;
+                box-sizing: border-box;
+                padding: 15px;
+                overflow: hidden;
+            }
+
+            .ranking-table th:first-child,
+            .ranking-table td:first-child {
+                width: 15%;
+            }
+
+            .ranking-table th:nth-child(2),
+            .ranking-table td:nth-child(2) {
+                width: 35%;
+            }
+
+            .ranking-table th:nth-child(3),
+            .ranking-table td:nth-child(3) {
+                width: 30%;
+            }
+
+            .ranking-table th:last-child,
+            .ranking-table td:last-child {
+                width: 20%;
+            }
+
+            .rank-number {
+                font-size: 14px;
+            }
+
+            .ranking-table table {
+                width: 100%;
+                min-width: 100%;
+            }
+
+            .ranking-table th,
+            .ranking-table td,
+            .sales-table th,
+            .sales-table td {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .sale-category,
+            .sale-incentive {
+                font-size: 11px;
+                padding: 4px 8px;
+            }
+
+            .wallet-amount {
+                font-size: 20px;
+            }
+
+            .header > div {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .view-sales-btn,
+            .logout-btn {
+                width: 100%;
+                text-align: center;
+                margin: 5px 0;
+                padding: 12px;
+            }
+
+            .user-info,
+            .ranking-section,
+            .sales-section {
+                padding: 15px;
+            }
+
+            .sales-section {
+                padding: 15px 0;
+            }
+
+            .sales-section h2 {
+                padding: 0 15px;
+            }
+
+            .sales-table-wrapper {
+                margin: 0;
+                padding: 0;
+            }
+        }
+
+        @media screen and (max-width: 480px) {
+            .welcome-message {
+                font-size: 18px;
+            }
+
+            .sales-table th,
+            .sales-table td {
+                min-width: 120px;
+            }
+
+            .wallet-amount {
+                font-size: 18px;
+            }
+
+            .ranking-badge .rank-number {
+                font-size: 16px;
+            }
+
+            .sale-amount {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <h1 class="welcome-message" id="welcomeMessage">Welcome </h1>
+            <div>
+                <a href="/view-sales.html" class="view-sales-btn">View Sales</a>
+                <a href="/login.html" class="logout-btn" onclick="logout()">Logout</a>
+            </div>
+        </div>
+        <div class="user-info">
+            <h2>Your Information</h2>
+            <div class="user-details">
+                <div class="detail-item">
+                    <strong>Username</strong>
+                    <span id="username"></span>
+                </div>
+                <div class="detail-item">
+                    <strong>Member Since</strong>
+                    <span id="memberSince"></span>
+                </div>
+                <div class="detail-item">
+                    <strong>Last Login</strong>
+                    <span id="lastLogin"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add wallet info section -->
+        <div class="wallet-info">
+            <h2>Your Wallet</h2>
+            <div class="wallet-cards">
+                <div class="wallet-card earned">
+                    <div class="wallet-label">Total Earned</div>
+                    <div class="wallet-amount" id="totalEarned">₹0.00</div>
+                </div>
+                <div class="wallet-card credited">
+                    <div class="wallet-label">Total Credited</div>
+                    <div class="wallet-amount" id="totalCredited">₹0.00</div>
+                </div>
+                <div class="wallet-card balance">
+                    <div class="wallet-label">Balance</div>
+                    <div class="wallet-amount" id="balance">₹0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Updated ranking section -->
+        <div class="ranking-section">
+            <div class="section-header">
+                <div class="title-section">
+                    <h2>Incentive Rankings</h2>
+                    <h3 id="monthTitle" class="month-title"></h3>
+                </div>
+                <div class="month-selector">
+                    <label for="monthSelect">Select Month:</label>
+                    <select id="monthSelect" onchange="loadRankings()">
+                        <!-- Options will be populated dynamically -->
+                    </select>
+                </div>
+            </div>
+            <div id="rankingLoading" class="loading">Loading rankings...</div>
+            <div id="rankingMessage" class="message"></div>
+            <table class="ranking-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>Total Incentive</th>
+                        <th>Sales</th>
+                    </tr>
+                </thead>
+                <tbody id="rankingTableBody">
+                    <!-- Rankings will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Updated sales section -->
+        <div class="sales-section">
+            <h2>Your Top 10 Sales by Incentive</h2>
+            <div id="loading" class="loading">Loading sales data...</div>
+            <div id="message" class="message"></div>
+            <div class="sales-table-wrapper">
+                <table class="sales-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Sale Price</th>
+                            <th>Incentive %</th>
+                            <th>Incentive Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="salesTableBody">
+                        <!-- Sales will be dynamically populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        function checkAuth() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) {
+                window.location.href = '/login.html';
+                return;
+            }
+            return user;
+        }
+
+        // Display user information
+        function displayUserInfo() {
+            const user = checkAuth();
+            if (user) {
+                document.getElementById('username').textContent = user.username;
+                document.getElementById('memberSince').textContent = new Date(user.createdAt).toLocaleDateString();
+                document.getElementById('lastLogin').textContent = user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never';
+                document.getElementById('welcomeMessage').textContent = `Welcome ${user.username},`;
+            }
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Show ranking message
+        function showRankingMessage(message, type) {
+            const messageDiv = document.getElementById('rankingMessage');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Load wallet info
+        async function loadWalletInfo() {
+            try {
+                const user = checkAuth();
+                if (!user) return;
+
+                const response = await fetch('/api/user-incentives');
+                const data = await response.json();
+
+                if (data.success) {
+                    const userWallet = data.userIncentives.find(ui => ui.userId === user._id);
+                    if (userWallet) {
+                        const totalEarned = userWallet.totalIncentive || 0;
+                        const totalCredited = userWallet.totalCredited || 0;
+                        const balance = totalEarned - totalCredited;
+
+                        document.getElementById('totalEarned').textContent = `₹${totalEarned.toFixed(2)}`;
+                        document.getElementById('totalCredited').textContent = `₹${totalCredited.toFixed(2)}`;
+                        document.getElementById('balance').textContent = `₹${balance.toFixed(2)}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading wallet info:', error);
+            }
+        }
+
+        // Add this function to populate month selector
+        function populateMonthSelector() {
+            const monthSelect = document.getElementById('monthSelect');
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth();
+            
+            // Clear existing options
+            monthSelect.innerHTML = '';
+            
+            // Add options for the last 12 months
+            for(let i = 0; i < 12; i++) {
+                const date = new Date(currentYear, currentMonth - i, 1);
+                const option = document.createElement('option');
+                option.value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                option.textContent = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                monthSelect.appendChild(option);
+            }
+        }
+
+        // Updated load rankings function
+        async function loadRankings() {
+            try {
+                const user = checkAuth();
+                if (!user) return;
+
+                document.getElementById('rankingLoading').style.display = 'block';
+                
+                const monthSelect = document.getElementById('monthSelect');
+                const [year, month] = monthSelect.value.split('-');
+                
+                // Update month title
+                const selectedDate = new Date(year, month - 1);
+                document.getElementById('monthTitle').textContent = selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+                const response = await fetch(`/api/user-incentives?year=${year}&month=${month}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const sortedUsers = data.userIncentives
+                        .sort((a, b) => b.totalIncentive - a.totalIncentive);
+
+                    const tbody = document.getElementById('rankingTableBody');
+                    tbody.innerHTML = '';
+
+                    if (sortedUsers.length > 0) {
+                        sortedUsers.forEach((userData, index) => {
+                            const tr = document.createElement('tr');
+                            const isCurrentUser = userData.userId === user._id;
+                            if (isCurrentUser) tr.classList.add('current-user-row');
+                            
+                            const rankClass = index < 3 ? `top-${index + 1}` : '';
+                            tr.innerHTML = `
+                                <td>
+                                    <div class="ranking-badge ${rankClass}">
+                                        <span class="rank-number">#${index + 1}</span>
+                                    </div>
+                                </td>
+                                <td>${userData.userName}${isCurrentUser ? ' (You)' : ''}</td>
+                                <td><span class="incentive-amount">₹${userData.totalIncentive.toFixed(2)}</span></td>
+                                <td><span class="sales-count">${userData.sales.length} sales</span></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td colspan="4" style="text-align: center; padding: 20px;">
+                                No rankings available
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                } else {
+                    showRankingMessage('Error loading rankings', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showRankingMessage('Error loading rankings', 'error');
+            } finally {
+                document.getElementById('rankingLoading').style.display = 'none';
+            }
+        }
+
+        // Updated load top sales function
+        async function loadTopSales() {
+            try {
+                const user = checkAuth();
+                if (!user) return;
+
+                document.getElementById('loading').style.display = 'block';
+                
+                // Fetch both incentives and user incentives
+                const [incentivesResponse, userIncentivesResponse] = await Promise.all([
+                    fetch('/api/incentives'),
+                    fetch('/api/user-incentives')
+                ]);
+                
+                const [incentivesData, userIncentivesData] = await Promise.all([
+                    incentivesResponse.json(),
+                    userIncentivesResponse.json()
+                ]);
+
+                if (incentivesData.success && userIncentivesData.success) {
+                    // Get all sales for the current user
+                    const allUserSales = [];
+                    
+                    incentivesData.incentives.forEach(record => {
+                        const userIncentive = record.userIncentives.find(ui => ui.userId === user._id);
+                        if (userIncentive && userIncentive.sales) {
+                            userIncentive.sales.forEach(sale => {
+                                allUserSales.push({
+                                    ...sale,
+                                    date: record.date // Add the date from the incentive record
+                                });
+                            });
+                        }
+                    });
+
+                    // Sort by incentive amount and get top 10
+                    const topSales = allUserSales
+                        .sort((a, b) => b.incentive - a.incentive)
+                        .slice(0, 10);
+
+                    const tbody = document.getElementById('salesTableBody');
+                    tbody.innerHTML = '';
+
+                    if (topSales.length > 0) {
+                        topSales.forEach(sale => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td><span class="sale-date">${formatDate(sale.date)}</span></td>
+                                <td><span class="sale-product">${sale.productName}</span></td>
+                                <td><span class="sale-category">${sale.categoryName || 'Uncategorized'}</span></td>
+                                <td><span class="sale-amount">₹${sale.salePrice.toFixed(2)}</span></td>
+                                <td><span class="sale-incentive">${sale.incentivePercentage}%</span></td>
+                                <td><span class="sale-amount">₹${sale.incentive.toFixed(2)}</span></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    } else {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td colspan="6" style="text-align: center; padding: 20px;">
+                                No sales found
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                } else {
+                    showMessage('Error loading sales data', 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage('Error loading sales data', 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Logout function
+        function logout() {
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            populateMonthSelector();
+            displayUserInfo();
+            loadWalletInfo();
+            loadRankings();
+            loadTopSales();
+        });
+    </script>
+</body>
+</html>

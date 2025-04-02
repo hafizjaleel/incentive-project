@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales History - Detailed View</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+        }
+
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-group label {
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 10px;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-item h3 {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .summary-item p {
+            margin: 5px 0 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .sales-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .sales-table th,
+        .sales-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .sales-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .sales-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            background-color: #6f42c1;
+        }
+
+        .action-btn:hover {
+            background-color: #5a32a3;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .chart-wrapper {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            height: 300px;
+        }
+
+        .chart-title {
+            margin: 0 0 15px 0;
+            color: #333;
+            font-size: 18px;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chart-controls select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        canvas {
+            height: 200px !important;
+        }
+
+        /* Print-specific styles */
+        @media print {
+            body {
+                padding: 0;
+                background: white;
+            }
+            
+            .container {
+                box-shadow: none;
+                padding: 0;
+            }
+            
+            .back-btn,
+            .action-btn,
+            .filters,
+            .chart-controls,
+            .delete-btn {
+                display: none !important;
+            }
+            
+            .header {
+                border-bottom: 2px solid #333;
+            }
+            
+            .summary {
+                border: 1px solid #ddd;
+            }
+            
+            .sales-table th {
+                background-color: #f0f0f0 !important;
+            }
+            
+            .sales-table,
+            .sales-table th,
+            .sales-table td {
+                border: 1px solid #ddd;
+            }
+            
+            .charts-container {
+                page-break-before: always;
+            }
+            
+            .chart-wrapper {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+        
+        .print-btn {
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            margin-right: 10px;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .print-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sales History</h1>
+            <div>
+                <button class="print-btn" onclick="printReport()">Print Report</button>
+                <a href="/admin.html" class="back-btn">Back to Admin</a>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+        <div id="loading" class="loading">Loading sales data...</div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="dateRange">Date Range</label>
+                <input type="date" id="startDate">
+                <input type="date" id="endDate">
+            </div>
+            <div class="filter-group">
+                <label for="userFilter">User</label>
+                <input type="search" id="userFilter" list="userList" placeholder="Search user...">
+                <datalist id="userList">
+                    <option value="">All Users</option>
+                </datalist>
+            </div>
+            <div class="filter-group">
+                <label for="productFilter">Product</label>
+                <input type="search" id="productFilter" list="productList" placeholder="Search product...">
+                <datalist id="productList">
+                    <option value="">All Products</option>
+                </datalist>
+            </div>
+            <div class="filter-group">
+                <label for="categoryFilter">Category</label>
+                <input type="search" id="categoryFilter" list="categoryList" placeholder="Search category...">
+                <datalist id="categoryList">
+                    <option value="">All Categories</option>
+                </datalist>
+            </div>
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <button class="action-btn" onclick="applyFilters()">Apply Filters</button>
+            </div>
+        </div>
+
+        <div class="summary">
+            <div class="summary-item">
+                <h3>Total Sales</h3>
+                <p id="totalSales">₹0.00</p>
+            </div>
+            <div class="summary-item">
+                <h3>Total Profit</h3>
+                <p id="totalProfit">₹0.00</p>
+            </div>
+            <div class="summary-item">
+                <h3>Total Incentives</h3>
+                <p id="totalIncentives">₹0.00</p>
+            </div>
+            <div class="summary-item">
+                <h3>Number of Sales</h3>
+                <p id="numberOfSales">0</p>
+            </div>
+        </div>
+
+        <table class="sales-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Sale Price</th>
+                    <th>Net Cost</th>
+                    <th>Profit</th>
+                    <th>User</th>
+                    <th>Incentive %</th>
+                    <th>Incentive Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="salesTableBody">
+                <!-- Sales will be populated here -->
+            </tbody>
+        </table>
+
+        <div class="charts-container" style="margin-top: 40px;">
+            <div class="chart-wrapper">
+                <h3 class="chart-title">Daily Sales</h3>
+                <div class="chart-controls">
+                    <select id="dailyChartMetric" onchange="updateDailyChart()">
+                        <option value="sales">Total Sales</option>
+                        <option value="profit">Total Profit</option>
+                        <option value="incentives">Total Incentives</option>
+                    </select>
+                </div>
+                <canvas id="dailySalesChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <h3 class="chart-title">Monthly Sales</h3>
+                <div class="chart-controls">
+                    <select id="monthlyChartMetric" onchange="updateMonthlyChart()">
+                        <option value="sales">Total Sales</option>
+                        <option value="profit">Total Profit</option>
+                        <option value="incentives">Total Incentives</option>
+                    </select>
+                </div>
+                <canvas id="monthlySalesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is admin
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || !user.isAdmin) {
+            window.location.href = '/login.html';
+        }
+
+        let allSales = [];
+        let allUsers = [];
+        let allProducts = [];
+        let allCategories = [];
+
+        let dailyChart;
+        let monthlyChart;
+
+        // Load initial data
+        async function loadInitialData() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                
+                // Fetch all required data
+                const [salesResponse, usersResponse, productsResponse, categoriesResponse] = await Promise.all([
+                    fetch('/api/incentives'),
+                    fetch('/api/users'),
+                    fetch('/api/products'),
+                    fetch('/api/categories')
+                ]);
+
+                console.log('Sales Response Status:', salesResponse.status);
+                console.log('Users Response Status:', usersResponse.status);
+                console.log('Products Response Status:', productsResponse.status);
+                console.log('Categories Response Status:', categoriesResponse.status);
+
+                const salesData = await salesResponse.json();
+                const usersData = await usersResponse.json();
+                const productsData = await productsResponse.json();
+                const categoriesData = await categoriesResponse.json();
+
+                console.log('Sales Data Structure:', {
+                    hasSuccess: 'success' in salesData,
+                    hasIncentives: 'incentives' in salesData,
+                    incentivesLength: salesData.incentives?.length,
+                    sampleIncentive: salesData.incentives?.[0]
+                });
+                console.log('Users Data Structure:', {
+                    hasSuccess: 'success' in usersData,
+                    hasUsers: 'users' in usersData,
+                    usersLength: usersData.users?.length
+                });
+                console.log('Products Data Structure:', {
+                    hasSuccess: 'success' in productsData,
+                    hasProducts: 'products' in productsData,
+                    productsLength: productsData.products?.length,
+                    sampleProduct: productsData.products?.[0]
+                });
+                console.log('Categories Data Structure:', {
+                    hasSuccess: 'success' in categoriesData,
+                    hasCategories: 'categories' in categoriesData,
+                    categoriesLength: categoriesData.categories?.length,
+                    sampleCategory: categoriesData.categories?.[0]
+                });
+
+                if (!salesData.success) {
+                    throw new Error('Failed to load sales data: ' + (salesData.message || 'Unknown error'));
+                }
+                if (!usersData.success) {
+                    throw new Error('Failed to load users data: ' + (usersData.message || 'Unknown error'));
+                }
+                if (!productsData.success) {
+                    throw new Error('Failed to load products data: ' + (productsData.message || 'Unknown error'));
+                }
+                if (!categoriesData.success) {
+                    throw new Error('Failed to load categories data: ' + (categoriesData.message || 'Unknown error'));
+                }
+
+                // Store the data
+                allSales = salesData.incentives || [];
+                allUsers = (usersData.users || []).filter(user => !user.isAdmin);
+                allProducts = productsData.products || [];
+                allCategories = categoriesData.categories || [];
+
+                // Log the data for debugging
+                console.log('Stored data:', {
+                    salesCount: allSales.length,
+                    usersCount: allUsers.length,
+                    productsCount: allProducts.length,
+                    categoriesCount: allCategories.length
+                });
+
+                // Populate filters
+                populateFilters();
+
+                // Set current date for both date inputs
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('startDate').value = today;
+                document.getElementById('endDate').value = today;
+
+                // Apply filters
+                applyFilters();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                console.error('Error stack:', error.stack);
+                showMessage(`Error loading data: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function populateFilters() {
+            // Populate user filter
+            const userList = document.getElementById('userList');
+            allUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.username;
+                option.textContent = user.username;
+                userList.appendChild(option);
+            });
+
+            // Populate product filter
+            const productList = document.getElementById('productList');
+            allProducts.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.name;
+                option.textContent = product.name;
+                productList.appendChild(option);
+            });
+
+            // Populate category filter
+            const categoryList = document.getElementById('categoryList');
+            allCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.name;
+                option.textContent = category.name;
+                categoryList.appendChild(option);
+            });
+        }
+
+        function applyFilters() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const selectedUser = document.getElementById('userFilter').value.trim();
+            const selectedProduct = document.getElementById('productFilter').value.trim();
+            const selectedCategory = document.getElementById('categoryFilter').value.trim();
+
+            console.log('Filter criteria:', {
+                startDate,
+                endDate,
+                selectedUser,
+                selectedProduct,
+                selectedCategory
+            });
+
+            // Filter sales based on criteria
+            const filteredSales = allSales
+                .flatMap(inc => inc.details.map(detail => ({
+                    ...detail,
+                    date: inc.date,
+                    incentiveId: inc._id,
+                    // Map product and category data
+                    productName: detail.productName || 'Unknown Product',
+                    categoryName: detail.categoryName || 'Uncategorized',
+                    userName: allUsers.find(u => u._id === detail.userId)?.username || 'Unknown User'
+                })))
+                .filter(sale => {
+                    const saleDate = new Date(sale.date);
+                    const dateMatch = saleDate >= startDate && saleDate <= endDate;
+                    
+                    // User filter - match by username
+                    const userMatch = !selectedUser || sale.userName.toLowerCase().includes(selectedUser.toLowerCase());
+                    
+                    // Product filter - match by product name
+                    const productMatch = !selectedProduct || 
+                        sale.productName.toLowerCase().includes(selectedProduct.toLowerCase());
+                    
+                    // Category filter - match by category name
+                    const categoryMatch = !selectedCategory || 
+                        sale.categoryName.toLowerCase().includes(selectedCategory.toLowerCase());
+
+                    return dateMatch && userMatch && productMatch && categoryMatch;
+                })
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Update summary
+            updateSummary(filteredSales);
+
+            // Update table
+            updateSalesTable(filteredSales);
+
+            // Update charts
+            updateDailyChart();
+            updateMonthlyChart();
+        }
+
+        function updateSummary(sales) {
+            const totalSales = sales.reduce((sum, sale) => sum + sale.salePrice, 0);
+            const totalProfit = sales.reduce((sum, sale) => sum + sale.profit, 0);
+            const totalIncentives = sales.reduce((sum, sale) => sum + sale.incentive, 0);
+
+            document.getElementById('totalSales').textContent = `₹${totalSales.toFixed(2)}`;
+            document.getElementById('totalProfit').textContent = `₹${totalProfit.toFixed(2)}`;
+            document.getElementById('totalIncentives').textContent = `₹${totalIncentives.toFixed(2)}`;
+            document.getElementById('numberOfSales').textContent = sales.length;
+        }
+
+        function updateSalesTable(sales) {
+            const tbody = document.getElementById('salesTableBody');
+            tbody.innerHTML = '';
+
+            sales.forEach(sale => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formatDate(sale.date)}</td>
+                    <td>${sale.productName}</td>
+                    <td>${sale.categoryName || 'Uncategorized'}</td>
+                    <td>₹${sale.salePrice.toFixed(2)}</td>
+                    <td>₹${sale.netCost.toFixed(2)}</td>
+                    <td>₹${sale.profit.toFixed(2)}</td>
+                    <td>${sale.userName}</td>
+                    <td>${sale.incentivePercentage}%</td>
+                    <td>₹${sale.incentive.toFixed(2)}</td>
+                    <td>
+                        <button class="action-btn delete-btn" onclick="deleteSale('${sale.incentiveId}')">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (sales.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="10" style="text-align: center; padding: 20px;">
+                        No sales found for the selected filters
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            const dailyCtx = document.getElementById('dailySalesChart').getContext('2d');
+            const monthlyCtx = document.getElementById('monthlySalesChart').getContext('2d');
+
+            dailyChart = new Chart(dailyCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Daily Sales',
+                        data: [],
+                        borderColor: '#4CAF50',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            monthlyChart = new Chart(monthlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Monthly Sales',
+                        data: [],
+                        backgroundColor: '#4CAF50'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update daily chart
+        function updateDailyChart() {
+            const metric = document.getElementById('dailyChartMetric').value;
+            const filteredSales = getFilteredSales();
+            
+            // Group sales by date
+            const dailyData = filteredSales.reduce((acc, sale) => {
+                const date = sale.date.split('T')[0];
+                if (!acc[date]) {
+                    acc[date] = {
+                        sales: 0,
+                        profit: 0,
+                        incentives: 0
+                    };
+                }
+                acc[date].sales += sale.salePrice;
+                acc[date].profit += sale.profit;
+                acc[date].incentives += sale.incentive;
+                return acc;
+            }, {});
+
+            // Sort dates
+            const sortedDates = Object.keys(dailyData).sort();
+
+            // Update chart data
+            if (dailyChart) {
+                dailyChart.data.labels = sortedDates.map(date => formatDate(date));
+                dailyChart.data.datasets[0].data = sortedDates.map(date => dailyData[date][metric]);
+                dailyChart.data.datasets[0].label = getMetricLabel(metric);
+                dailyChart.update();
+            }
+        }
+
+        // Update monthly chart
+        function updateMonthlyChart() {
+            const metric = document.getElementById('monthlyChartMetric').value;
+            const filteredSales = getFilteredSales();
+            
+            // Group sales by month
+            const monthlyData = filteredSales.reduce((acc, sale) => {
+                const date = new Date(sale.date);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (!acc[monthKey]) {
+                    acc[monthKey] = {
+                        sales: 0,
+                        profit: 0,
+                        incentives: 0
+                    };
+                }
+                acc[monthKey].sales += sale.salePrice;
+                acc[monthKey].profit += sale.profit;
+                acc[monthKey].incentives += sale.incentive;
+                return acc;
+            }, {});
+
+            // Sort months
+            const sortedMonths = Object.keys(monthlyData).sort();
+
+            // Update chart data
+            if (monthlyChart) {
+                monthlyChart.data.labels = sortedMonths.map(month => {
+                    const [year, monthNum] = month.split('-');
+                    return `${getMonthName(parseInt(monthNum))} ${year}`;
+                });
+                monthlyChart.data.datasets[0].data = sortedMonths.map(month => monthlyData[month][metric]);
+                monthlyChart.data.datasets[0].label = getMetricLabel(metric);
+                monthlyChart.update();
+            }
+        }
+
+        // Helper function to get metric label
+        function getMetricLabel(metric) {
+            switch(metric) {
+                case 'sales': return 'Total Sales';
+                case 'profit': return 'Total Profit';
+                case 'incentives': return 'Total Incentives';
+                default: return 'Value';
+            }
+        }
+
+        // Helper function to get month name
+        function getMonthName(monthNum) {
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+            return months[monthNum - 1];
+        }
+
+        // Helper function to get filtered sales (for charts)
+        function getFilteredSales() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const selectedUser = document.getElementById('userFilter').value.trim();
+            const selectedProduct = document.getElementById('productFilter').value.trim();
+            const selectedCategory = document.getElementById('categoryFilter').value.trim();
+
+            return allSales
+                .flatMap(inc => inc.details.map(detail => ({
+                    ...detail,
+                    date: inc.date,
+                    productName: detail.productName || 'Unknown Product',
+                    categoryName: detail.categoryName || 'Uncategorized',
+                    userName: allUsers.find(u => u._id === detail.userId)?.username || 'Unknown User'
+                })))
+                .filter(sale => {
+                    const saleDate = new Date(sale.date);
+                    const dateMatch = saleDate >= startDate && saleDate <= endDate;
+                    const userMatch = !selectedUser || sale.userName.toLowerCase().includes(selectedUser.toLowerCase());
+                    const productMatch = !selectedProduct || 
+                        sale.productName.toLowerCase().includes(selectedProduct.toLowerCase());
+                    const categoryMatch = !selectedCategory || 
+                        sale.categoryName.toLowerCase().includes(selectedCategory.toLowerCase());
+
+                    return dateMatch && userMatch && productMatch && categoryMatch;
+                });
+        }
+
+        // Add delete sale function
+        async function deleteSale(saleId) {
+            if (confirm('Are you sure you want to delete this sale? This action cannot be undone.')) {
+                try {
+                    const response = await fetch(`/api/incentives/${saleId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showMessage('Sale deleted successfully', 'success');
+                        // Reload the data
+                        await loadInitialData();
+                    } else {
+                        showMessage(data.message || 'Error deleting sale', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error deleting sale', 'error');
+                }
+            }
+        }
+
+        function printReport() {
+            // Update charts before printing to ensure they're rendered
+            updateDailyChart();
+            updateMonthlyChart();
+            
+            // Add small delay to ensure charts are fully rendered
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize charts first
+            initializeCharts();
+            
+            // Then load data
+            await loadInitialData();
+        });
+    </script>
+</body>
+</html>

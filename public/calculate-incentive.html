@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculate Incentive</title>
+    <style>
+        /* Base styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            background-color: #4CAF50;
+            text-decoration: none;
+        }
+
+        .back-btn {
+            background-color: #6c757d;
+        }
+
+        .add-btn {
+            background-color: #28a745;
+        }
+
+        .calculate-btn {
+            background-color: #17a2b8;
+        }
+
+        .remove-btn {
+            background-color: #dc3545;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .sales-list {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .user-sales-group {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .user-sales-group h3 {
+            margin: 0 0 10px 0;
+            color: #495057;
+        }
+
+        .sale-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sale-item:last-child {
+            border-bottom: none;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: block;
+        }
+
+        .step-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        /* Add modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            right: 20px;
+            top: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Calculate Incentive</h1>
+            <a href="/admin.html" class="action-btn back-btn">Back to Dashboard</a>
+        </div>
+
+        <div id="message" class="message"></div>
+
+        <!-- Step 1: Select Date -->
+        <div id="step1" class="step active">
+            <h2>Step 1: Select Date</h2>
+            <div class="form-group">
+                <label for="incentiveDate">Date</label>
+                <input type="date" id="incentiveDate" required>
+            </div>
+            <div class="step-buttons">
+                <div></div>
+                <button class="action-btn" onclick="nextStep(2)">Next</button>
+            </div>
+        </div>
+
+        <!-- Step 2: Add Products -->
+        <div id="step2" class="step">
+            <h2>Step 2: Add Products</h2>
+            <div class="form-group">
+                <label for="saleProduct">Select Product</label>
+                <input type="search" id="saleProduct" list="productsList" placeholder="Search product...">
+                <datalist id="productsList"></datalist>
+            </div>
+            <div class="form-group">
+                <label for="salePrice">Sale Price</label>
+                <input type="number" id="salePrice" step="0.01" min="0">
+            </div>
+            <div class="form-group">
+                <label for="saleUser">Select User</label>
+                <input type="search" id="saleUser" list="usersList" placeholder="Search user...">
+                <datalist id="usersList"></datalist>
+            </div>
+            <button class="action-btn add-btn" onclick="addProduct()">Add Product</button>
+            
+            <div class="sales-list">
+                <h3>Added Products by User</h3>
+                <div id="productsByUser"></div>
+            </div>
+
+            <div class="step-buttons">
+                <button class="action-btn back-btn" onclick="previousStep(1)">Back</button>
+                <button class="action-btn" onclick="nextStep(3)">Next</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Review and Calculate -->
+        <div id="step3" class="step">
+            <h2>Step 3: Review and Calculate</h2>
+            <div id="reviewList" class="sales-list">
+                <!-- Review details will be shown here -->
+            </div>
+            <div class="step-buttons">
+                <button class="action-btn back-btn" onclick="previousStep(2)">Back</button>
+                <button class="action-btn calculate-btn" onclick="calculateIncentive()">Calculate Incentive</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Create Product Modal -->
+    <div id="createProductModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCreateProductModal()">&times;</span>
+            <h2>Create New Product</h2>
+            <div class="form-group">
+                <label for="createProductName">Product Name</label>
+                <input type="text" id="createProductName" required>
+            </div>
+            <div class="form-group">
+                <label for="createProductCategory">Category</label>
+                <input type="search" id="createProductCategory" list="categoryList" placeholder="Search category...">
+                <datalist id="categoryList"></datalist>
+            </div>
+            <div class="form-group">
+                <label for="createProductCost">Net Cost</label>
+                <input type="number" id="createProductCost" step="0.01" min="0" required>
+            </div>
+            <div class="step-buttons">
+                <button class="action-btn back-btn" onclick="closeCreateProductModal()">Cancel</button>
+                <button class="action-btn add-btn" onclick="createProduct()">Create Product</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let soldProducts = [];
+        let allProducts = [];
+        let allUsers = [];
+
+        // Check if user is admin
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || !user.isAdmin) {
+            window.location.href = '/login.html';
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('incentiveDate').value = new Date().toISOString().split('T')[0];
+            loadProducts();
+            loadUsers();
+        });
+
+        function nextStep(step) {
+            if (step === 2) {
+                const date = document.getElementById('incentiveDate').value;
+                if (!date) {
+                    showMessage('Please select a date', 'error');
+                    return;
+                }
+            }
+
+            if (step === 3) {
+                if (soldProducts.length === 0) {
+                    showMessage('Please add at least one product', 'error');
+                    return;
+                }
+                updateReviewList();
+            }
+
+            document.querySelector(`.step.active`).classList.remove('active');
+            document.getElementById(`step${step}`).classList.add('active');
+            currentStep = step;
+        }
+
+        function previousStep(step) {
+            document.querySelector(`.step.active`).classList.remove('active');
+            document.getElementById(`step${step}`).classList.add('active');
+            currentStep = step;
+        }
+
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                if (data.success) {
+                    allProducts = data.products;
+                    const productsList = document.getElementById('productsList');
+                    productsList.innerHTML = '';
+                    data.products.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.name;
+                        option.dataset.id = product._id;
+                        option.textContent = `${product.name} (Net Cost: ₹${product.netCost.toFixed(2)})`;
+                        productsList.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                showMessage('Error loading products', 'error');
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/users');
+                const data = await response.json();
+                if (data.success) {
+                    allUsers = data.users.filter(user => !user.isAdmin);
+                    const usersList = document.getElementById('usersList');
+                    usersList.innerHTML = '';
+                    allUsers.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.username;
+                        option.dataset.id = user._id;
+                        usersList.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                showMessage('Error loading users', 'error');
+            }
+        }
+
+        function addProduct() {
+            const productInput = document.getElementById('saleProduct');
+            const userInput = document.getElementById('saleUser');
+            const price = parseFloat(document.getElementById('salePrice').value);
+
+            const product = allProducts.find(p => p.name === productInput.value);
+            const user = allUsers.find(u => u.username === userInput.value);
+
+            if (!product) {
+                showMessage('Please select a valid product', 'error');
+                return;
+            }
+
+            if (!price || price <= 0) {
+                showMessage('Please enter a valid sale price', 'error');
+                return;
+            }
+
+            if (!user) {
+                showMessage('Please select a valid user', 'error');
+                return;
+            }
+
+            soldProducts.push({
+                productId: product._id,
+                price,
+                userId: user._id,
+                productName: product.name,
+                userName: user.username
+            });
+
+            updateProductsList();
+            clearProductForm();
+        }
+
+        function clearProductForm() {
+            document.getElementById('saleProduct').value = '';
+            document.getElementById('salePrice').value = '';
+            document.getElementById('saleUser').value = '';
+        }
+
+        function updateProductsList() {
+            // Group products by user
+            const groupedProducts = soldProducts.reduce((groups, sale) => {
+                if (!groups[sale.userName]) {
+                    groups[sale.userName] = [];
+                }
+                groups[sale.userName].push(sale);
+                return groups;
+            }, {});
+
+            // Update the products by user display
+            const container = document.getElementById('productsByUser');
+            container.innerHTML = '';
+
+            if (soldProducts.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">No products added yet</p>';
+                return;
+            }
+
+            Object.entries(groupedProducts).forEach(([userName, sales]) => {
+                const userGroup = document.createElement('div');
+                userGroup.className = 'user-sales-group';
+                userGroup.innerHTML = `
+                    <h3>${userName}</h3>
+                    ${sales.map((sale, index) => `
+                        <div class="sale-item">
+                            <div>
+                                <strong>${sale.productName}</strong><br>
+                                Sale Price: ₹${sale.price.toFixed(2)}
+                            </div>
+                            <button class="action-btn remove-btn" onclick="removeProduct(${soldProducts.indexOf(sale)})">Remove</button>
+                        </div>
+                    `).join('')}
+                `;
+                container.appendChild(userGroup);
+            });
+        }
+
+        function updateReviewList() {
+            const container = document.getElementById('reviewList');
+            container.innerHTML = `
+                <h3>Date: ${document.getElementById('incentiveDate').value}</h3>
+                <h3>Total Products: ${soldProducts.length}</h3>
+                ${soldProducts.map((sale, index) => `
+                    <div class="sale-item">
+                        <div>
+                            <strong>${sale.productName}</strong><br>
+                            Sale Price: ₹${sale.price.toFixed(2)}<br>
+                            User: ${sale.userName}
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+
+        function removeProduct(index) {
+            soldProducts.splice(index, 1);
+            updateProductsList();
+        }
+
+        async function calculateIncentive() {
+            const date = document.getElementById('incentiveDate').value;
+
+            try {
+                const response = await fetch('/api/calculate-incentive', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date,
+                        sales: soldProducts
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('Incentive calculated successfully', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/admin.html';
+                    }, 2000);
+                } else {
+                    showMessage(data.message || 'Error calculating incentive', 'error');
+                }
+            } catch (error) {
+                showMessage('Error calculating incentive', 'error');
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Add new functions for product creation
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const data = await response.json();
+                if (data.success) {
+                    const categoryList = document.getElementById('categoryList');
+                    categoryList.innerHTML = '';
+                    data.categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.name;
+                        option.dataset.id = category._id;
+                        categoryList.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                showMessage('Error loading categories', 'error');
+            }
+        }
+
+        document.getElementById('saleProduct').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                const productName = e.target.value.trim();
+                const product = allProducts.find(p => p.name.toLowerCase() === productName.toLowerCase());
+                if (!product && productName !== '') {
+                    showCreateProductModal(productName);
+                }
+            }
+        });
+
+        function showCreateProductModal(productName = '') {
+            document.getElementById('createProductName').value = productName;
+            document.getElementById('createProductModal').style.display = 'block';
+            loadCategories();
+        }
+
+        function closeCreateProductModal() {
+            document.getElementById('createProductModal').style.display = 'none';
+            document.getElementById('createProductName').value = '';
+            document.getElementById('createProductCategory').value = '';
+            document.getElementById('createProductCost').value = '';
+        }
+
+        async function createProduct() {
+            const name = document.getElementById('createProductName').value;
+            const categoryInput = document.getElementById('createProductCategory');
+            const netCost = document.getElementById('createProductCost').value;
+
+            if (!name || !netCost) {
+                showMessage('Please fill all required fields', 'error');
+                return;
+            }
+
+            const categoryOption = Array.from(document.getElementById('categoryList').options)
+                .find(option => option.value === categoryInput.value);
+            const categoryId = categoryOption ? categoryOption.dataset.id : null;
+
+            try {
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        categoryId,
+                        netCost: parseFloat(netCost)
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    showMessage('Product created successfully', 'success');
+                    closeCreateProductModal();
+                    await loadProducts();
+                    document.getElementById('saleProduct').value = name;
+                } else {
+                    showMessage(data.message || 'Error creating product', 'error');
+                }
+            } catch (error) {
+                showMessage('Error creating product', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

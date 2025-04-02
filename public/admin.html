@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - User Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+
+        .header > div {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            background-color: #4CAF50;
+        }
+
+        .incentive-btn {
+            background-color: #2196F3;
+        }
+
+        .incentive-btn:hover {
+            background-color: #1976D2;
+        }
+
+        .logout-btn {
+            background-color: #dc3545;
+        }
+
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .users-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .users-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .edit-btn {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .status-active {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .status-inactive {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #incentiveModal .modal-content {
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #incentiveModal .modal-content > * {
+            flex-shrink: 0;
+        }
+
+        #incentiveModal .sold-products-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin: 20px 0;
+            max-height: calc(90vh - 250px);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        #incentiveModal .modal-buttons {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        /* Base modals */
+        #incentiveModal {
+            z-index: 1002;
+        }
+
+        #incentiveModal .modal-content {
+            z-index: 1003;
+        }
+
+        #addSaleModal {
+            z-index: 1004;
+        }
+
+        #addSaleModal .modal-content {
+            z-index: 1005;
+        }
+
+        #productsModal {
+            z-index: 1006;
+        }
+
+        #productsModal .modal-content {
+            z-index: 1007;
+        }
+
+        #createProductModal {
+            z-index: 1008;
+        }
+
+        #createProductModal .modal-content {
+            z-index: 1009;
+        }
+
+        #editProductModal {
+            z-index: 1010;
+        }
+
+        #editProductModal .modal-content {
+            z-index: 1011;
+        }
+
+        #createModal {
+            z-index: 1012;
+        }
+
+        #createModal .modal-content {
+            z-index: 1013;
+        }
+
+        #editModal {
+            z-index: 1014;
+        }
+
+        #editModal .modal-content {
+            z-index: 1015;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .cancel-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .save-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .create-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .create-btn:hover {
+            background-color: #218838;
+        }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .products-btn {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .products-btn:hover {
+            background-color: #138496;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .products-table th,
+        .products-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .products-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .products-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        #productsTableContainer {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .incentive-btn {
+            background-color: #6f42c1;
+            color: white;
+        }
+
+        .incentive-btn:hover {
+            background-color: #5a32a3;
+        }
+
+        .add-btn {
+            background-color: #28a745;
+            color: white;
+            margin-top: 5px;
+        }
+
+        .add-btn:hover {
+            background-color: #218838;
+        }
+
+        .calculate-btn {
+            background-color: #17a2b8;
+            color: white;
+        }
+
+        .calculate-btn:hover {
+            background-color: #138496;
+        }
+
+        .sold-products-list {
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .sold-product-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .sold-product-item:last-child {
+            border-bottom: none;
+        }
+
+        .sold-product-info {
+            flex-grow: 1;
+        }
+
+        .sold-product-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .remove-sale {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .remove-sale:hover {
+            background-color: #c82333;
+        }
+
+        .action-btn.delete-btn {
+            background-color: #dc3545;
+        }
+
+        /* Add styles for winner row */
+        .winner-row {
+            background-color: #fff3cd;
+            font-weight: bold;
+        }
+
+        .winner-row td {
+            border-bottom: 2px solid #ffc107;
+        }
+
+        .winner-row td:first-child::before {
+            content: "🏆";
+            margin-right: 8px;
+        }
+
+        /* Add styles for top 3 rows */
+        .top-3-row {
+            background-color: #f8f9fa;
+        }
+
+        .top-3-row:nth-child(2) td:first-child::before {
+            content: "🥈";
+            margin-right: 8px;
+        }
+
+        .top-3-row:nth-child(3) td:first-child::before {
+            content: "🥉";
+            margin-right: 8px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .month-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .month-selector select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .month-selector label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .title-section {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .month-title {
+            font-size: 30px;
+            color: #090909;
+            text-align: center;
+            margin: 10px 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <div class="header">
+            <h1>Admin Dashboard</h1>
+            <div>
+                <a href="/calculate-incentive.html" class="action-btn incentive-btn">Calculate Incentive</a>
+                <a href="/products.html" class="action-btn">Manage Products</a>
+                <a href="/sales.html" class="action-btn">View Sales</a>
+                <a href="/wallet.html" class="action-btn">Manage Wallet</a>
+                <a href="/login.html" class="action-btn logout-btn" onclick="logout()">Logout</a>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+        <div id="loading" class="loading">Loading users...</div>
+
+        <div class="section-header">
+            <div class="title-section">
+                <h2>User Management</h2>
+                <h3 id="monthLeaderboard" class="month-title"></h3>
+            </div>
+            <div class="month-selector">
+                <label for="monthSelect">Select Month:</label>
+                <select id="monthSelect" onchange="loadUsers()">
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+        </div>
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Status</th>
+                    <th>Last Login</th>
+                    <th>Total Amount Sold</th>
+                    <th>Total Incentive</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody">
+                <!-- Users will be populated here -->
+            </tbody>
+        </table>
+
+        <!-- Add Sales History Section -->
+        <div class="section-header" style="display: flex; justify-content: space-between; align-items: center; margin-top: 40px;">
+            <h2>Sales History</h2>
+            <a href="/sales.html" class="action-btn incentive-btn">Show More</a>
+        </div>
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Product</th>
+                    <th>Category</th>
+                    <th>Sale Price</th>
+                    <th>Net Cost</th>
+                    <th>Profit</th>
+                    <th>User</th>
+                    <th>Incentive %</th>
+                    <th>Incentive Amount</th>
+                </tr>
+            </thead>
+            <tbody id="salesTableBody">
+                <!-- Sales will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Incentive Details Modal -->
+    <div id="incentiveDetailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Incentive Details</h2>
+            </div>
+            <div id="incentiveDetailsContent">
+                <!-- Incentive details will be populated here -->
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="action-btn cancel-btn" onclick="closeIncentiveDetailsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit User</h2>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label for="editUsername">Username</label>
+                    <input type="text" id="editUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="editPassword">New Password (leave blank to keep current)</label>
+                    <input type="password" id="editPassword">
+                </div>
+                <div class="form-group">
+                    <label for="editStatus">Status</label>
+                    <select id="editStatus">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="action-btn cancel-btn" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="action-btn save-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <h2>Create New User</h2>
+            <form id="createUserForm">
+                <div class="form-group">
+                    <label for="createUsername">Username</label>
+                    <input type="text" id="createUsername" required>
+                </div>
+                <div class="form-group">
+                    <label for="createPassword">Password</label>
+                    <input type="password" id="createPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="createStatus">Status</label>
+                    <select id="createStatus">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="createIsAdmin">
+                        Admin User
+                    </label>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="action-btn cancel-btn" onclick="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="action-btn save-btn">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Products Modal -->
+    <div id="productsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Product Management</h2>
+                <button class="action-btn create-btn" onclick="showCreateProductModal()">Create New Product</button>
+            </div>
+            <div id="productsTableContainer">
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Net Cost</th>
+                            <th>Created At</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productsTableBody">
+                        <!-- Products will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="action-btn cancel-btn" onclick="closeProductsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Product Modal -->
+    <div id="createProductModal" class="modal">
+        <div class="modal-content">
+            <h2>Create New Product</h2>
+            <form id="createProductForm">
+                <div class="form-group">
+                    <label for="createProductName">Product Name</label>
+                    <input type="text" id="createProductName" required>
+                </div>
+                <div class="form-group">
+                    <label for="createProductCategory">Category</label>
+                    <input type="search" id="createProductCategory" list="createCategoryList" placeholder="Search category..." required>
+                    <datalist id="createCategoryList">
+                        <option value="">Select a category...</option>
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label for="createProductCost">Net Cost</label>
+                    <input type="number" id="createProductCost" step="0.01" min="0" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="action-btn cancel-btn" onclick="closeCreateProductModal()">Cancel</button>
+                    <button type="submit" class="action-btn save-btn">Create Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editProductModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Product</h2>
+            <form id="editProductForm">
+                <input type="hidden" id="editProductId">
+                <div class="form-group">
+                    <label for="editProductName">Product Name</label>
+                    <input type="text" id="editProductName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProductCost">Net Cost</label>
+                    <input type="number" id="editProductCost" step="0.01" min="0" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="action-btn cancel-btn" onclick="closeEditProductModal()">Cancel</button>
+                    <button type="submit" class="action-btn save-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Incentive Modal -->
+    <div id="incentiveModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>Calculate Incentive</h2>
+                <button type="button" class="action-btn calculate-btn" onclick="calculateIncentive()">Calculate</button>
+            </div>
+            <div class="form-group">
+                <label for="incentiveDate">Date</label>
+                <input type="date" id="incentiveDate" required>
+            </div>
+            <div class="form-group">
+                <button class="action-btn add-btn" onclick="showAddSaleModal()">Add Sold Product</button>
+            </div>
+            <div id="soldProductsList" class="sold-products-list">
+                <!-- Sold products will be listed here -->
+            </div>
+            <div class="modal-buttons">
+                <button type="button" class="action-btn cancel-btn" onclick="closeIncentiveModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Sale Modal -->
+    <div id="addSaleModal" class="modal">
+        <div class="modal-content">
+            <h2>Add Sold Product</h2>
+            <form id="addSaleForm">
+                <div class="form-group">
+                    <label for="saleProduct">Select Product</label>
+                    <input type="search" id="saleProduct" list="saleProductList" placeholder="Search product..." required>
+                    <datalist id="saleProductList">
+                        <option value="">Select a product...</option>
+                    </datalist>
+                    <button type="button" class="action-btn add-btn" onclick="showCreateProductModal()">Create New Product</button>
+                </div>
+                <div class="form-group">
+                    <label for="salePrice">Sale Price</label>
+                    <input type="number" id="salePrice" step="0.01" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="saleUser">Select User</label>
+                    <input type="search" id="saleUser" list="saleUserList" placeholder="Search user..." required>
+                    <datalist id="saleUserList">
+                        <option value="">Select a user...</option>
+                    </datalist>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="action-btn cancel-btn" onclick="closeAddSaleModal()">Cancel</button>
+                    <button type="submit" class="action-btn save-btn">Add Sale</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is admin
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || !user.isAdmin) {
+            window.location.href = '/login.html';
+        }
+
+        let allUserIncentives = [];
+        let allSales = [];
+
+        // Populate month selector
+        function populateMonthSelector() {
+            const monthSelect = document.getElementById('monthSelect');
+            const currentDate = new Date();
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth();
+            
+            // Clear existing options
+            monthSelect.innerHTML = '';
+            
+            // Add options for the last 12 months
+            for(let i = 0; i < 12; i++) {
+                const date = new Date(currentYear, currentMonth - i, 1);
+                const option = document.createElement('option');
+                option.value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                option.textContent = date.toLocaleString('default', { month: 'long', year: 'numeric' });
+                monthSelect.appendChild(option);
+            }
+        }
+
+        // Load users
+        async function loadUsers() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                console.log('Fetching users data...');
+                
+                const monthSelect = document.getElementById('monthSelect');
+                const [year, month] = monthSelect.value.split('-');
+                
+                // Update month title with new format
+                const selectedDate = new Date(year, month - 1);
+                const monthTitle = `Leaderboard - ${selectedDate.toLocaleString('default', { month: 'long', year: 'numeric' })}`;
+                document.getElementById('monthLeaderboard').textContent = monthTitle;
+                
+                const [usersResponse, incentivesResponse, salesResponse] = await Promise.all([
+                    fetch('/api/users'),
+                    fetch(`/api/user-incentives?year=${year}&month=${month}`),
+                    fetch(`/api/incentives?year=${year}&month=${month}`)
+                ]);
+                
+                console.log('Users response status:', usersResponse.status);
+                console.log('Incentives response status:', incentivesResponse.status);
+                console.log('Sales response status:', salesResponse.status);
+                
+                const usersData = await usersResponse.json();
+                const incentivesData = await incentivesResponse.json();
+                const salesData = await salesResponse.json();
+                
+                console.log('Users data:', usersData);
+                console.log('Incentives data:', incentivesData);
+                console.log('Sales data:', salesData);
+                
+                if (!usersData.success) {
+                    throw new Error(usersData.message || 'Failed to load users');
+                }
+                
+                if (!incentivesData.success) {
+                    console.warn('Failed to load incentives:', incentivesData.message);
+                }
+
+                if (!salesData.success) {
+                    console.warn('Failed to load sales:', salesData.message);
+                }
+                
+                // Store user incentives data
+                allUserIncentives = incentivesData.userIncentives || [];
+                
+                // Store sales data
+                allSales = salesData.incentives || [];
+                
+                // Load sales history
+                await loadSales();
+                
+                const tbody = document.getElementById('usersTableBody');
+                tbody.innerHTML = '';
+                
+                // Sort users by total incentive
+                const sortedUsers = usersData.users
+                    .filter(user => !user.isAdmin)
+                    .sort((a, b) => {
+                        const userA = allUserIncentives.find(inc => inc.userId === a._id.toString());
+                        const userB = allUserIncentives.find(inc => inc.userId === b._id.toString());
+                        const totalA = userA ? userA.totalIncentive : 0;
+                        const totalB = userB ? userB.totalIncentive : 0;
+                        return totalB - totalA; // Sort in descending order
+                    });
+                
+                // Update table
+                sortedUsers.forEach((user, index) => {
+                    const userIncentive = allUserIncentives.find(inc => inc.userId === user._id.toString());
+                    const totalIncentive = userIncentive ? userIncentive.totalIncentive : 0;
+                    const totalAmountSold = userIncentive ? userIncentive.sales.reduce((sum, sale) => sum + sale.salePrice, 0) : 0;
+
+                    const tr = document.createElement('tr');
+                    // Add winner class for first row
+                    if (index === 0) {
+                        tr.className = 'winner-row';
+                    } else if (index < 3) {
+                        tr.className = 'top-3-row';
+                    }
+
+                    tr.innerHTML = `
+                        <td>${user.username}</td>
+                        <td>${user.status}</td>
+                        <td>${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('en-GB', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        }) : 'Never'}</td>
+                        <td>₹${totalAmountSold.toFixed(2)}</td>
+                        <td>₹${totalIncentive.toFixed(2)}</td>
+                        <td>
+                            <button class="action-btn edit-btn" onclick="editUser('${user._id}')">Edit</button>
+                            <button class="action-btn delete-btn" onclick="deleteUser('${user._id}')">Delete</button>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Show message if no regular users found
+                if (sortedUsers.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td colspan="6" style="text-align: center; padding: 20px;">
+                            No regular users found
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showMessage(`Error loading users: ${error.message}`, 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Edit user
+        async function editUser(userId) {
+            try {
+                const response = await fetch(`/api/users/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const user = data.user;
+                    document.getElementById('editUserId').value = user._id;
+                    document.getElementById('editUsername').value = user.username;
+                    document.getElementById('editStatus').value = user.status || 'active';
+                    document.getElementById('editModal').style.display = 'block';
+                } else {
+                    showMessage('Error loading user details', 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading user details', 'error');
+            }
+        }
+
+        // Delete user
+        async function deleteUser(userId) {
+            if (confirm('Are you sure you want to delete this user?')) {
+                try {
+                    const response = await fetch(`/api/users/${userId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showMessage('User deleted successfully', 'success');
+                        loadUsers();
+                    } else {
+                        showMessage('Error deleting user', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error deleting user', 'error');
+                }
+            }
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Handle edit form submission
+        document.getElementById('editUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userId = document.getElementById('editUserId').value;
+            const username = document.getElementById('editUsername').value;
+            const password = document.getElementById('editPassword').value;
+            const status = document.getElementById('editStatus').value;
+
+            try {
+                const response = await fetch(`/api/users/${userId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password: password || undefined,
+                        status
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('User updated successfully', 'success');
+                    closeModal();
+                    loadUsers();
+                } else {
+                    showMessage('Error updating user', 'error');
+                }
+            } catch (error) {
+                showMessage('Error updating user', 'error');
+            }
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const editModal = document.getElementById('editModal');
+            const createModal = document.getElementById('createModal');
+            const productsModal = document.getElementById('productsModal');
+            const createProductModal = document.getElementById('createProductModal');
+            const editProductModal = document.getElementById('editProductModal');
+            const incentiveModal = document.getElementById('incentiveModal');
+            const addSaleModal = document.getElementById('addSaleModal');
+            
+            if (event.target === editModal) {
+                closeModal();
+            }
+            if (event.target === createModal) {
+                closeCreateModal();
+            }
+            if (event.target === productsModal) {
+                closeProductsModal();
+            }
+            if (event.target === createProductModal) {
+                closeCreateProductModal();
+            }
+            if (event.target === editProductModal) {
+                closeEditProductModal();
+            }
+            if (event.target === incentiveModal) {
+                closeIncentiveModal();
+            }
+            if (event.target === addSaleModal) {
+                closeAddSaleModal();
+            }
+        };
+
+        // Show create modal
+        function showCreateModal() {
+            document.getElementById('createModal').style.display = 'block';
+        }
+
+        // Close create modal
+        function closeCreateModal() {
+            document.getElementById('createModal').style.display = 'none';
+            document.getElementById('createUserForm').reset();
+        }
+
+        // Handle create user form submission
+        document.getElementById('createUserForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('createUsername').value;
+            const password = document.getElementById('createPassword').value;
+            const status = document.getElementById('createStatus').value;
+            const isAdmin = document.getElementById('createIsAdmin').checked;
+
+            try {
+                const response = await fetch('/api/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        status,
+                        isAdmin
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('User created successfully', 'success');
+                    closeCreateModal();
+                    loadUsers();
+                } else {
+                    showMessage(data.message || 'Error creating user', 'error');
+                }
+            } catch (error) {
+                showMessage('Error creating user', 'error');
+            }
+        });
+
+        // Show products modal
+        function showProductsModal() {
+            document.getElementById('productsModal').style.display = 'block';
+            loadProducts();
+        }
+
+        function closeProductsModal() {
+            document.getElementById('productsModal').style.display = 'none';
+        }
+
+        function showCreateProductModal() {
+            document.getElementById('createProductModal').style.display = 'block';
+            loadCategories();
+        }
+
+        function closeCreateProductModal() {
+            document.getElementById('createProductModal').style.display = 'none';
+            document.getElementById('createProductForm').reset();
+        }
+
+        // Load products
+        async function loadProducts() {
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tbody = document.getElementById('productsTableBody');
+                    tbody.innerHTML = '';
+                    
+                    data.products.forEach(product => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${product.name}</td>
+                            <td>₹${product.netCost.toFixed(2)}</td>
+                            <td>${formatDate(product.createdAt)}</td>
+                            <td>
+                                <button class="action-btn edit-btn" onclick="editProduct('${product._id}')">Edit</button>
+                                <button class="action-btn delete-btn" onclick="deleteProduct('${product._id}')">Delete</button>
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+
+                    // Show message if no products found
+                    if (data.products.length === 0) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td colspan="4" style="text-align: center; padding: 20px;">
+                                No products found
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    }
+                } else {
+                    showMessage('Error loading products', 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading products', 'error');
+            }
+        }
+
+        // Load users when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            populateMonthSelector();
+            loadUsers();
+        });
+
+        // Handle create product form submission
+        document.getElementById('createProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('createProductName').value;
+            const categoryInput = document.getElementById('createProductCategory');
+            const netCost = document.getElementById('createProductCost').value;
+
+            // Find the selected category by matching the name
+            const categoryOption = Array.from(document.getElementById('createCategoryList').options)
+                .find(option => option.value === categoryInput.value);
+            const categoryId = categoryOption ? categoryOption.dataset.id : null;
+
+            try {
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        categoryId,
+                        netCost: parseFloat(netCost)
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Product created successfully', 'success');
+                    closeCreateProductModal();
+                    
+                    // Add the new product to allProducts array
+                    const newProduct = {
+                        _id: data.productId,
+                        name: name,
+                        netCost: parseFloat(netCost),
+                        createdAt: new Date()
+                    };
+                    allProducts.push(newProduct);
+                    
+                    // Update the product select dropdown
+                    const select = document.getElementById('saleProduct');
+                    const option = document.createElement('option');
+                    option.value = newProduct.name;
+                    option.textContent = `${newProduct.name} (Net Cost: ₹${newProduct.netCost.toFixed(2)})`;
+                    select.appendChild(option);
+                    
+                    // Select the newly created product
+                    select.value = newProduct.name;
+                    
+                    // Focus on the sale price input
+                    document.getElementById('salePrice').focus();
+                } else {
+                    showMessage(data.message || 'Error creating product', 'error');
+                }
+            } catch (error) {
+                showMessage('Error creating product', 'error');
+            }
+        });
+
+        // Edit product
+        async function editProduct(productId) {
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const product = data.product;
+                    document.getElementById('editProductId').value = product._id;
+                    document.getElementById('editProductName').value = product.name;
+                    document.getElementById('editProductCost').value = product.netCost;
+                    document.getElementById('editProductModal').style.display = 'block';
+                } else {
+                    showMessage(data.message || 'Error loading product details', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading product:', error);
+                showMessage('Error loading product details', 'error');
+            }
+        }
+
+        // Delete product
+        async function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                try {
+                    const response = await fetch(`/api/products/${productId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showMessage('Product deleted successfully', 'success');
+                        loadProducts();
+                    } else {
+                        showMessage(data.message || 'Error deleting product', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error deleting product', 'error');
+                }
+            }
+        }
+
+        // Handle edit product form submission
+        document.getElementById('editProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const productId = document.getElementById('editProductId').value;
+            const name = document.getElementById('editProductName').value;
+            const netCost = document.getElementById('editProductCost').value;
+
+            try {
+                const response = await fetch(`/api/products/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        netCost: parseFloat(netCost)
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Product updated successfully', 'success');
+                    closeEditProductModal();
+                    loadProducts();
+                } else {
+                    showMessage(data.message || 'Error updating product', 'error');
+                }
+            } catch (error) {
+                showMessage('Error updating product', 'error');
+            }
+        });
+
+        function closeEditProductModal() {
+            document.getElementById('editProductModal').style.display = 'none';
+            document.getElementById('editProductForm').reset();
+        }
+
+        // Add these variables at the top of the script section
+        let soldProducts = [];
+        let allProducts = [];
+        let allUsers = [];
+
+        // Add this function at the beginning of the script section
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        // Add these functions to the existing script section
+        function showIncentiveModal() {
+            document.getElementById('incentiveModal').style.display = 'block';
+            document.getElementById('incentiveDate').value = new Date().toISOString().split('T')[0];
+            updateSoldProductsList();
+        }
+
+        function closeIncentiveModal() {
+            document.getElementById('incentiveModal').style.display = 'none';
+            soldProducts = [];
+            updateSoldProductsList();
+        }
+
+        function showAddSaleModal() {
+            document.getElementById('addSaleModal').style.display = 'block';
+            loadProductsForSale();
+            loadUsersForSale();
+        }
+
+        function closeAddSaleModal() {
+            document.getElementById('addSaleModal').style.display = 'none';
+            document.getElementById('addSaleForm').reset();
+        }
+
+        async function loadProductsForSale() {
+            try {
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                
+                if (data.success) {
+                    allProducts = data.products;
+                    const productList = document.getElementById('saleProductList');
+                    productList.innerHTML = '<option value="">Select a product...</option>';
+                    
+                    data.products.forEach(product => {
+                        const option = document.createElement('option');
+                        option.value = product.name;
+                        option.dataset.id = product._id;
+                        option.textContent = `${product.name} (Net Cost: ₹${product.netCost.toFixed(2)})`;
+                        productList.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                showMessage('Error loading products', 'error');
+            }
+        }
+
+        async function loadUsersForSale() {
+            try {
+                console.log('Loading users for sale...');
+                const response = await fetch('/api/users');
+                const data = await response.json();
+                
+                console.log('Users response:', data);
+                
+                if (data.success) {
+                    allUsers = data.users.filter(user => !user.isAdmin);
+                    console.log('Filtered users:', allUsers);
+                    
+                    const userList = document.getElementById('saleUserList');
+                    userList.innerHTML = '<option value="">Select a user...</option>';
+                    
+                    allUsers.forEach(user => {
+                        const option = document.createElement('option');
+                        option.value = user.username;
+                        option.dataset.id = user._id;
+                        userList.appendChild(option);
+                    });
+                    
+                    console.log('User list populated');
+                } else {
+                    throw new Error(data.message || 'Failed to load users');
+                }
+            } catch (error) {
+                console.error('Error loading users for sale:', error);
+                showMessage('Error loading users: ' + error.message, 'error');
+            }
+        }
+
+        function updateSoldProductsList() {
+            const container = document.getElementById('soldProductsList');
+            container.innerHTML = '';
+            
+            if (soldProducts.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #666;">No products added yet</p>';
+                return;
+            }
+
+            soldProducts.forEach((sale, index) => {
+                const product = allProducts.find(p => p._id === sale.productId);
+                const user = allUsers.find(u => u._id === sale.userId);
+                
+                if (product && user) {
+                    const div = document.createElement('div');
+                    div.className = 'sold-product-item';
+                    div.innerHTML = `
+                        <div class="sold-product-info">
+                            <strong>${product.name}</strong><br>
+                            Sale Price: ₹${sale.price.toFixed(2)}<br>
+                            User: ${user.username}
+                        </div>
+                        <div class="sold-product-actions">
+                            <button class="remove-sale" onclick="removeSale(${index})">Remove</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                }
+            });
+        }
+
+        function removeSale(index) {
+            soldProducts.splice(index, 1);
+            updateSoldProductsList();
+        }
+
+        // Handle add sale form submission
+        document.getElementById('addSaleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const productInput = document.getElementById('saleProduct');
+            const userInput = document.getElementById('saleUser');
+            const price = parseFloat(document.getElementById('salePrice').value);
+            
+            // Find the selected product and user by matching the name
+            const product = allProducts.find(p => p.name === productInput.value);
+            const user = allUsers.find(u => u.username === userInput.value);
+            
+            console.log('Form submission:', { product, user, price });
+            
+            // Validate inputs
+            if (!product) {
+                showMessage('Please select a valid product', 'error');
+                return;
+            }
+            
+            if (!price || price <= 0) {
+                showMessage('Please enter a valid sale price', 'error');
+                return;
+            }
+            
+            if (!user) {
+                showMessage('Please select a valid user', 'error');
+                return;
+            }
+            
+            // Add the sale to the list
+            soldProducts.push({
+                productId: product._id,
+                price,
+                userId: user._id,
+                productName: product.name,
+                userName: user.username
+            });
+            
+            console.log('Added sale:', soldProducts[soldProducts.length - 1]);
+            
+            closeAddSaleModal();
+            updateSoldProductsList();
+        });
+
+        async function calculateIncentive() {
+            const date = document.getElementById('incentiveDate').value;
+            if (!date) {
+                showMessage('Please select a date', 'error');
+                return;
+            }
+
+            if (soldProducts.length === 0) {
+                showMessage('Please add at least one sold product', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/calculate-incentive', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date,
+                        sales: soldProducts
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Incentive calculated successfully', 'success');
+                    closeIncentiveModal();
+                    loadUsers();
+                } else {
+                    showMessage(data.message || 'Error calculating incentive', 'error');
+                }
+            } catch (error) {
+                showMessage('Error calculating incentive', 'error');
+            }
+        }
+
+        // Show incentive details
+        function showIncentiveDetails(userId) {
+            console.log('Showing incentive details for user:', userId);
+            console.log('All user incentives:', allUserIncentives);
+            
+            const userIncentive = allUserIncentives.find(inc => inc.userId === userId);
+            console.log('Found user incentive:', userIncentive);
+            
+            if (!userIncentive) {
+                showMessage('No incentive details found for this user', 'error');
+                return;
+            }
+
+            const content = document.getElementById('incentiveDetailsContent');
+            content.innerHTML = `
+                <h3>Incentive Details for ${userIncentive.userName}</h3>
+                <p><strong>Total Incentive:</strong> ₹${userIncentive.totalIncentive.toFixed(2)}</p>
+                <h4>Sales History:</h4>
+                <table class="products-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Sale Price</th>
+                            <th>Net Cost</th>
+                            <th>Profit</th>
+                            <th>Incentive %</th>
+                            <th>Incentive Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${userIncentive.sales.map(sale => `
+                            <tr>
+                                <td>${sale.productName}</td>
+                                <td>${sale.categoryName}</td>
+                                <td>₹${sale.salePrice.toFixed(2)}</td>
+                                <td>₹${sale.netCost.toFixed(2)}</td>
+                                <td>₹${sale.profit.toFixed(2)}</td>
+                                <td>${sale.incentivePercentage}%</td>
+                                <td>₹${sale.incentive.toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            document.getElementById('incentiveDetailsModal').style.display = 'block';
+        }
+
+        function closeIncentiveDetailsModal() {
+            document.getElementById('incentiveDetailsModal').style.display = 'none';
+        }
+
+        // Load sales history
+        async function loadSales() {
+            try {
+                const tbody = document.getElementById('salesTableBody');
+                tbody.innerHTML = '';
+
+                // Get the last 10 sales
+                const recentSales = allSales
+                    .flatMap(inc => inc.details.map(detail => ({
+                        ...detail,
+                        date: inc.date,
+                        incentiveId: inc._id
+                    })))
+                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                    .slice(0, 10);
+
+                recentSales.forEach(sale => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${formatDate(sale.date)}</td>
+                        <td>${sale.productName}</td>
+                        <td>${sale.categoryName || 'Uncategorized'}</td>
+                        <td>₹${sale.salePrice.toFixed(2)}</td>
+                        <td>₹${sale.netCost.toFixed(2)}</td>
+                        <td>₹${sale.profit.toFixed(2)}</td>
+                        <td>${sale.userName}</td>
+                        <td>${sale.incentivePercentage}%</td>
+                        <td>₹${sale.incentive.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                if (recentSales.length === 0) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td colspan="9" style="text-align: center; padding: 20px;">
+                            No sales found
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            } catch (error) {
+                console.error('Error loading sales:', error);
+                showMessage('Error loading sales history', 'error');
+            }
+        }
+
+        // Add this function to load categories
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const data = await response.json();
+
+                if (data.success) {
+                    const categoryList = document.getElementById('createCategoryList');
+                    categoryList.innerHTML = '<option value="">Select a category...</option>';
+
+                    data.categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.name;
+                        option.dataset.id = category._id;
+                        categoryList.appendChild(option);
+                    });
+                } else {
+                    showMessage('Error loading categories', 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading categories', 'error');
+            }
+        }
+    </script>
+</body>
+</html>

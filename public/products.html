@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .back-btn:hover {
+            background-color: #5a6268;
+        }
+
+        .products-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .products-table th,
+        .products-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .products-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .products-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+        .edit-btn {
+            background-color: #ffc107;
+            color: #000;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .create-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .create-btn:hover {
+            background-color: #218838;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+
+        .message {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .cancel-btn {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .save-btn {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* Add search styles */
+        .search-container {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+        }
+
+        .search-label {
+            font-weight: 600;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Product Management</h1>
+            <div>
+                <button class="action-btn create-btn" onclick="showCreateModal()">Create New Product</button>
+                <button class="action-btn create-btn" onclick="showCreateCategoryModal()">Create New Category</button>
+                <a href="/admin.html" class="back-btn">Back to Admin</a>
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+        <div id="loading" class="loading">Loading products...</div>
+
+        <!-- Add search container -->
+        <div class="search-container">
+            <label for="searchInput" class="search-label">Search Products:</label>
+            <input type="text" id="searchInput" class="search-input" placeholder="Search by product name or category...">
+        </div>
+
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Net Cost</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="productsTableBody">
+                <!-- Products will be populated here -->
+            </tbody>
+        </table>
+
+        <div class="section-header" style="margin-top: 40px;">
+            <h2>Categories</h2>
+        </div>
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Incentive Percentage</th>
+                    <th>Created At</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="categoriesTableBody">
+                <!-- Categories will be populated here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Create Category Modal -->
+    <div id="createCategoryModal" class="modal">
+        <div class="modal-content">
+            <h2>Create New Category</h2>
+            <form id="createCategoryForm">
+                <div class="form-group">
+                    <label for="createCategoryName">Category Name</label>
+                    <input type="text" id="createCategoryName" required>
+                </div>
+                <div class="form-group">
+                    <label for="createCategoryIncentive">Incentive Percentage</label>
+                    <input type="number" id="createCategoryIncentive" min="0" max="100" step="0.01" required>
+                    <small style="color: #666;">Enter percentage (0-100)</small>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="action-btn cancel-btn" onclick="closeCreateCategoryModal()">Cancel</button>
+                    <button type="submit" class="action-btn save-btn">Create Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Create Product Modal -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <h2>Create New Product</h2>
+            <form id="createProductForm">
+                <div class="form-group">
+                    <label for="createProductName">Product Name</label>
+                    <input type="text" id="createProductName" required>
+                </div>
+                <div class="form-group">
+                    <label for="createProductCategory">Category</label>
+                    <input type="search" id="createProductCategory" list="createCategoryList" placeholder="Search category...">
+                    <datalist id="createCategoryList">
+                        <option value="">Select a category...</option>
+                    </datalist>
+                </div>
+                <div class="form-group">
+                    <label for="createProductCost">Net Cost</label>
+                    <input type="number" id="createProductCost" step="0.01" min="0" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="action-btn cancel-btn" onclick="closeCreateModal()">Cancel</button>
+                    <button type="submit" class="action-btn save-btn">Create Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Product Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h2>Edit Product</h2>
+            <form id="editProductForm">
+                <input type="hidden" id="editProductId">
+                <div class="form-group">
+                    <label for="editProductName">Product Name</label>
+                    <input type="text" id="editProductName" required>
+                </div>
+                <div class="form-group">
+                    <label for="editProductCost">Net Cost</label>
+                    <input type="number" id="editProductCost" step="0.01" min="0" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="action-btn cancel-btn" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="action-btn save-btn">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is admin
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user || !user.isAdmin) {
+            window.location.href = '/login.html';
+        }
+
+        // Add this function at the beginning of the script section
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        // Load products
+        async function loadProducts() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                const response = await fetch('/api/products');
+                const data = await response.json();
+                
+                if (data.success) {
+                    window.allProducts = data.products; // Store all products globally
+                    filterAndDisplayProducts(window.allProducts);
+                } else {
+                    showMessage('Error loading products', 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading products', 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        // Load categories
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const data = await response.json();
+
+                if (data.success) {
+                    // Update category datalist
+                    const categoryList = document.getElementById('createCategoryList');
+                    categoryList.innerHTML = '<option value="">Select a category...</option>';
+
+                    data.categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.name;
+                        option.dataset.id = category._id;
+                        categoryList.appendChild(option);
+                    });
+
+                    // Update categories table
+                    const categoriesTableBody = document.getElementById('categoriesTableBody');
+                    categoriesTableBody.innerHTML = '';
+
+                    data.categories.forEach(category => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${category.name}</td>
+                            <td>${category.incentivePercentage}%</td>
+                            <td>${formatDate(category.createdAt)}</td>
+                            <td>
+                                <button class="action-btn delete-btn" onclick="deleteCategory('${category._id}')">Delete</button>
+                            </td>
+                        `;
+                        categoriesTableBody.appendChild(tr);
+                    });
+
+                    if (data.categories.length === 0) {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td colspan="4" style="text-align: center; padding: 20px;">
+                                No categories found
+                            </td>
+                        `;
+                        categoriesTableBody.appendChild(tr);
+                    }
+                } else {
+                    showMessage('Error loading categories', 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading categories', 'error');
+            }
+        }
+
+        // Show create modal
+        function showCreateModal() {
+            document.getElementById('createModal').style.display = 'block';
+        }
+
+        // Close create modal
+        function closeCreateModal() {
+            document.getElementById('createModal').style.display = 'none';
+            document.getElementById('createProductForm').reset();
+        }
+
+        // Show edit modal
+        async function editProduct(productId) {
+            try {
+                const response = await fetch(`/api/products/${productId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const product = data.product;
+                    document.getElementById('editProductId').value = product._id;
+                    document.getElementById('editProductName').value = product.name;
+                    document.getElementById('editProductCost').value = product.netCost;
+                    document.getElementById('editModal').style.display = 'block';
+                } else {
+                    showMessage('Error loading product details', 'error');
+                }
+            } catch (error) {
+                showMessage('Error loading product details', 'error');
+            }
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+            document.getElementById('editProductForm').reset();
+        }
+
+        // Delete product
+        async function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                try {
+                    const response = await fetch(`/api/products/${productId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showMessage('Product deleted successfully', 'success');
+                        loadProducts();
+                    } else {
+                        showMessage('Error deleting product', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error deleting product', 'error');
+                }
+            }
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        // Handle create product form submission
+        document.getElementById('createProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('createProductName').value;
+            const categoryInput = document.getElementById('createProductCategory');
+            const netCost = document.getElementById('createProductCost').value;
+
+            // Find the selected category by matching the name
+            const categoryOption = Array.from(document.getElementById('createCategoryList').options)
+                .find(option => option.value === categoryInput.value);
+            const categoryId = categoryOption ? categoryOption.dataset.id : null;
+
+            try {
+                const response = await fetch('/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        categoryId,
+                        netCost: parseFloat(netCost)
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Product created successfully', 'success');
+                    closeCreateModal();
+                    loadProducts();
+                } else {
+                    showMessage(data.message || 'Error creating product', 'error');
+                }
+            } catch (error) {
+                showMessage('Error creating product', 'error');
+            }
+        });
+
+        // Handle edit product form submission
+        document.getElementById('editProductForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const productId = document.getElementById('editProductId').value;
+            const name = document.getElementById('editProductName').value;
+            const netCost = document.getElementById('editProductCost').value;
+
+            try {
+                const response = await fetch(`/api/products/${productId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        name,
+                        netCost: parseFloat(netCost)
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage('Product updated successfully', 'success');
+                    closeEditModal();
+                    loadProducts();
+                } else {
+                    showMessage(data.message || 'Error updating product', 'error');
+                }
+            } catch (error) {
+                showMessage('Error updating product', 'error');
+            }
+        });
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const createModal = document.getElementById('createModal');
+            const editModal = document.getElementById('editModal');
+            
+            if (event.target === createModal) {
+                closeCreateModal();
+            }
+            if (event.target === editModal) {
+                closeEditModal();
+            }
+        };
+
+        // Show create category modal
+        function showCreateCategoryModal() {
+            document.getElementById('createCategoryModal').style.display = 'block';
+        }
+
+        // Close create category modal
+        function closeCreateCategoryModal() {
+            document.getElementById('createCategoryModal').style.display = 'none';
+            document.getElementById('createCategoryForm').reset();
+        }
+
+        // Delete category
+        async function deleteCategory(categoryId) {
+            if (confirm('Are you sure you want to delete this category? This action cannot be undone.')) {
+                try {
+                    const response = await fetch(`/api/categories/${categoryId}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        showMessage('Category deleted successfully', 'success');
+                        loadCategories();
+                    } else {
+                        showMessage(data.message || 'Error deleting category', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error deleting category', 'error');
+                }
+            }
+        }
+
+        // Handle create category form submission
+        document.getElementById('createCategoryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('createCategoryName').value;
+            const incentivePercentage = parseFloat(document.getElementById('createCategoryIncentive').value);
+
+            try {
+                const response = await fetch('/api/categories', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ 
+                        name,
+                        incentivePercentage 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('Category created successfully', 'success');
+                    closeCreateCategoryModal();
+                    loadCategories();
+                } else {
+                    showMessage(data.message || 'Error creating category', 'error');
+                }
+            } catch (error) {
+                showMessage('Error creating category', 'error');
+            }
+        });
+
+        // Add search functionality
+        function filterAndDisplayProducts(products) {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const tbody = document.getElementById('productsTableBody');
+            tbody.innerHTML = '';
+            
+            const filteredProducts = products.filter(product => {
+                const nameMatch = product.name.toLowerCase().includes(searchTerm);
+                const categoryMatch = (product.category && product.category.name.toLowerCase().includes(searchTerm));
+                return nameMatch || categoryMatch;
+            });
+            
+            filteredProducts.forEach(product => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${product.name}</td>
+                    <td>${product.category ? product.category.name : ''}</td>
+                    <td>₹${product.netCost.toFixed(2)}</td>
+                    <td>${formatDate(product.createdAt)}</td>
+                    <td>
+                        <button class="action-btn edit-btn" onclick="editProduct('${product._id}')">Edit</button>
+                        <button class="action-btn delete-btn" onclick="deleteProduct('${product._id}')">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (filteredProducts.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="5" style="text-align: center; padding: 20px;">
+                        No products found
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        // Add event listener for search input
+        document.getElementById('searchInput').addEventListener('input', function() {
+            if (window.allProducts) {
+                filterAndDisplayProducts(window.allProducts);
+            }
+        });
+
+        // Load products and categories when page loads
+        loadProducts();
+        loadCategories();
+    </script>
+</body>
+</html> 

@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales History - View Only</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --background-color: #f1f5f9;
+            --card-background: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #20002c 0%, #411765 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header h1::before {
+            content: "📊";
+            font-size: 1.75rem;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .filters {
+            background-color: var(--card-background);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+
+        .filter-group input,
+        .filter-group select {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-item {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(226, 232, 240, 0.7);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .summary-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-item:nth-child(1) { border-top: 4px solid #3b82f6; }
+        .summary-item:nth-child(2) { border-top: 4px solid #22c55e; }
+        .summary-item:nth-child(3) { border-top: 4px solid #f59e0b; }
+        .summary-item:nth-child(4) { border-top: 4px solid #ec4899; }
+
+        .summary-item h3 {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin: 0 0 0.5rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .summary-item p {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin: 0;
+            color: #1e293b;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .summary-item:nth-child(1) p::before { content: "💰"; }
+        .summary-item:nth-child(2) p::before { content: "📈"; }
+        .summary-item:nth-child(3) p::before { content: "🎁"; }
+        .summary-item:nth-child(4) p::before { content: "📊"; }
+
+        @media (max-width: 768px) {
+            .header {
+                text-align: center;
+                justify-content: center;
+            }
+
+            .filters {
+                grid-template-columns: 1fr;
+            }
+
+            .summary {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 1rem;
+            }
+
+            .summary-item {
+                padding: 1.5rem;
+            }
+
+            .summary-item p {
+                font-size: 1.5rem;
+            }
+
+            .charts-container {
+                grid-template-columns: 1fr;
+                padding: 0.5rem;
+                gap: 1rem;
+            }
+
+            .chart-wrapper {
+                height: 200px;
+                padding: 0.75rem;
+                margin: 0;
+            }
+
+            .chart-title {
+                font-size: 0.875rem;
+                margin-bottom: 0.25rem;
+            }
+
+            .chart-controls {
+                margin-bottom: 0.25rem;
+            }
+
+            .chart-controls select {
+                width: 100%;
+                max-width: none;
+                padding: 0.4rem 2rem 0.4rem 0.5rem;
+                font-size: 0.813rem;
+            }
+
+            canvas {
+                height: calc(100% - 50px) !important;
+            }
+
+            .sales-table th,
+            .sales-table td {
+                padding: 12px 10px;
+                font-size: 0.813rem;
+            }
+        }
+
+        .sales-table-container {
+            overflow-x: auto;
+            background: linear-gradient(135deg, #20002c 0%, #411765 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+
+        .sales-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+        }
+
+        .sales-table th {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            text-align: left;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            border: none;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sales-table td {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .sales-table tr:hover td {
+            background: rgba(255, 255, 255, 0.1);
+            transform: scale(1.01);
+        }
+
+        .sales-table tr td:first-child {
+            border-top-left-radius: 8px;
+            border-bottom-left-radius: 8px;
+        }
+
+        .sales-table tr td:last-child {
+            border-top-right-radius: 8px;
+            border-bottom-right-radius: 8px;
+        }
+
+        .sales-table td:nth-child(4),
+        .sales-table td:nth-child(5),
+        .sales-table td:nth-child(6),
+        .sales-table td:nth-child(9) {
+            color: #FF9F43;
+            font-weight: 500;
+        }
+
+        .sales-table td:nth-child(8) {
+            color: rgba(255, 159, 67, 0.8);
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+            width: 100%;
+        }
+
+        .chart-wrapper {
+            background: linear-gradient(135deg, #20002c 0%, #411765 100%);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            height: 250px;
+            position: relative;
+        }
+
+        .chart-title {
+            color: white;
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+        }
+
+        .chart-controls {
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-controls select {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            padding-right: 2.5rem;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .chart-controls select:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .chart-controls select:focus {
+            outline: none;
+            border-color: #FF9F43;
+            box-shadow: 0 0 0 2px rgba(255, 159, 67, 0.2);
+        }
+
+        .chart-controls select option {
+            background-color: #20002c;
+            color: white;
+            padding: 8px;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: calc(100% - 60px) !important;
+        }
+
+        .action-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Sales History</h1>
+            <a href="/dashboard.html" class="back-btn">Back to Dashboard</a>
+        </div>
+
+        <div id="message" class="message"></div>
+        <div id="loading" class="loading">Loading sales data...</div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="dateRange">Date Range</label>
+                <input type="date" id="startDate">
+                <input type="date" id="endDate">
+            </div>
+            <div class="filter-group">
+                <label for="productFilter">Product</label>
+                <input type="search" id="productFilter" list="productList" placeholder="Search product...">
+                <datalist id="productList">
+                    <option value="">All Products</option>
+                </datalist>
+            </div>
+            <div class="filter-group">
+                <label for="categoryFilter">Category</label>
+                <input type="search" id="categoryFilter" list="categoryList" placeholder="Search category...">
+                <datalist id="categoryList">
+                    <option value="">All Categories</option>
+                </datalist>
+            </div>
+            <div class="filter-group">
+                <label for="userFilter">User</label>
+                <input type="search" id="userFilter" list="userList" placeholder="Search user...">
+                <datalist id="userList">
+                    <option value="">All Users</option>
+                </datalist>
+            </div>
+            <div class="filter-group">
+                <label>&nbsp;</label>
+                <button class="action-btn" onclick="applyFilters()">Apply Filters</button>
+            </div>
+        </div>
+
+        <div class="summary">
+            <div class="summary-item">
+                <h3>Total Sales</h3>
+                <p id="totalSales">₹0.00</p>
+            </div>
+            <div class="summary-item">
+                <h3>Total Profit</h3>
+                <p id="totalProfit">₹0.00</p>
+            </div>
+            <div class="summary-item">
+                <h3>Total Incentives</h3>
+                <p id="totalIncentives">₹0.00</p>
+            </div>
+            <div class="summary-item">
+                <h3>Number of Sales</h3>
+                <p id="numberOfSales">0</p>
+            </div>
+        </div>
+
+        <div class="sales-table-container">
+            <table class="sales-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Sale Price</th>
+                        <th>Net Cost</th>
+                        <th>Profit</th>
+                        <th>User</th>
+                        <th>Incentive %</th>
+                        <th>Incentive Amount</th>
+                    </tr>
+                </thead>
+                <tbody id="salesTableBody">
+                    <!-- Sales will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-wrapper">
+                <h3 class="chart-title">Daily Sales</h3>
+                <div class="chart-controls">
+                    <select id="dailyChartMetric" onchange="updateDailyChart()">
+                        <option value="sales">📈 Total Sales</option>
+                        <option value="profit">💰 Total Profit</option>
+                        <option value="incentives">🎁 Total Incentives</option>
+                    </select>
+                </div>
+                <canvas id="dailySalesChart"></canvas>
+            </div>
+            <div class="chart-wrapper">
+                <h3 class="chart-title">Monthly Sales</h3>
+                <div class="chart-controls">
+                    <select id="monthlyChartMetric" onchange="updateMonthlyChart()">
+                        <option value="sales">📈 Total Sales</option>
+                        <option value="profit">💰 Total Profit</option>
+                        <option value="incentives">🎁 Total Incentives</option>
+                    </select>
+                </div>
+                <canvas id="monthlySalesChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if user is logged in
+        const user = JSON.parse(localStorage.getItem('user'));
+        if (!user) {
+            window.location.href = '/login.html';
+        }
+
+        let allSales = [];
+        let allProducts = [];
+        let allCategories = [];
+
+        let dailyChart;
+        let monthlyChart;
+
+        // Load initial data
+        async function loadInitialData() {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                
+                const [salesResponse, productsResponse, categoriesResponse] = await Promise.all([
+                    fetch('/api/incentives'),
+                    fetch('/api/products'),
+                    fetch('/api/categories')
+                ]);
+
+                const salesData = await salesResponse.json();
+                const productsData = await productsResponse.json();
+                const categoriesData = await categoriesResponse.json();
+
+                if (!salesData.success || !productsData.success || !categoriesData.success) {
+                    throw new Error('Failed to load data');
+                }
+
+                // Store the data
+                allSales = salesData.incentives || [];
+                allProducts = productsData.products || [];
+                allCategories = categoriesData.categories || [];
+
+                // Populate filters
+                populateFilters();
+
+                // Set default date range (today)
+                const now = new Date();
+                const userTimezoneOffset = now.getTimezoneOffset() * 60000; // Convert to milliseconds
+                const today = new Date(now - userTimezoneOffset);
+                const formattedDate = today.toISOString().split('T')[0];
+                
+                document.getElementById('startDate').value = formattedDate;
+                document.getElementById('endDate').value = formattedDate;
+
+                // Apply filters
+                applyFilters();
+            } catch (error) {
+                console.error('Error loading data:', error);
+                showMessage('Error loading data', 'error');
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function populateFilters() {
+            // Populate product filter
+            const productList = document.getElementById('productList');
+            allProducts.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.name;
+                option.textContent = product.name;
+                productList.appendChild(option);
+            });
+
+            // Populate category filter
+            const categoryList = document.getElementById('categoryList');
+            allCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.name;
+                option.textContent = category.name;
+                categoryList.appendChild(option);
+            });
+
+            // Populate user filter with unique users from sales data
+            const userList = document.getElementById('userList');
+            const uniqueUsers = [...new Set(allSales.flatMap(inc => 
+                inc.details.map(detail => detail.userName)
+            ))];
+            uniqueUsers.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user;
+                option.textContent = user;
+                userList.appendChild(option);
+            });
+        }
+
+        function applyFilters() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const selectedProductId = document.getElementById('productFilter').value;
+            const selectedCategoryId = document.getElementById('categoryFilter').value;
+            const selectedUser = document.getElementById('userFilter').value;
+
+            // Filter sales based on criteria
+            const filteredSales = allSales
+                .flatMap(inc => inc.details.map(detail => ({
+                    ...detail,
+                    date: inc.date
+                })))
+                .filter(sale => {
+                    const saleDate = new Date(sale.date);
+                    const dateMatch = saleDate >= startDate && saleDate <= endDate;
+                    
+                    // Find the product in allProducts array
+                    const product = allProducts.find(p => p.name === selectedProductId);
+                    const productMatch = !selectedProductId || (product && product.name === sale.productName);
+                    
+                    // Find the category in allCategories array
+                    const category = allCategories.find(c => c.name === selectedCategoryId);
+                    const categoryMatch = !selectedCategoryId || (category && category.name === sale.categoryName);
+
+                    // Match user
+                    const userMatch = !selectedUser || sale.userName.toLowerCase().includes(selectedUser.toLowerCase());
+
+                    return dateMatch && productMatch && categoryMatch && userMatch;
+                })
+                .sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            // Update summary
+            updateSummary(filteredSales);
+
+            // Update table
+            updateSalesTable(filteredSales);
+
+            // Update charts
+            updateDailyChart();
+            updateMonthlyChart();
+        }
+
+        function updateSummary(sales) {
+            const totalSales = sales.reduce((sum, sale) => sum + sale.salePrice, 0);
+            const totalProfit = sales.reduce((sum, sale) => sum + sale.profit, 0);
+            const totalIncentives = sales.reduce((sum, sale) => sum + sale.incentive, 0);
+
+            document.getElementById('totalSales').textContent = `₹${totalSales.toFixed(2)}`;
+            document.getElementById('totalProfit').textContent = `₹${totalProfit.toFixed(2)}`;
+            document.getElementById('totalIncentives').textContent = `₹${totalIncentives.toFixed(2)}`;
+            document.getElementById('numberOfSales').textContent = sales.length;
+        }
+
+        function updateSalesTable(sales) {
+            const tbody = document.getElementById('salesTableBody');
+            tbody.innerHTML = '';
+
+            sales.forEach(sale => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${formatDate(sale.date)}</td>
+                    <td>${sale.productName}</td>
+                    <td>${sale.categoryName || 'Uncategorized'}</td>
+                    <td>₹${sale.salePrice.toFixed(2)}</td>
+                    <td>₹${sale.netCost.toFixed(2)}</td>
+                    <td>₹${sale.profit.toFixed(2)}</td>
+                    <td>${sale.userName}</td>
+                    <td>${sale.incentivePercentage}%</td>
+                    <td>₹${sale.incentive.toFixed(2)}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            if (sales.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td colspan="9" style="text-align: center; padding: 20px;">
+                        No sales found for the selected filters
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = `message ${type}`;
+            messageDiv.style.display = 'block';
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 3000);
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'Never';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            const dailyCtx = document.getElementById('dailySalesChart').getContext('2d');
+            const monthlyCtx = document.getElementById('monthlySalesChart').getContext('2d');
+
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.8)',
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString();
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.1)',
+                            drawBorder: false
+                        },
+                        ticks: {
+                            color: 'rgba(255, 255, 255, 0.8)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            };
+
+            dailyChart = new Chart(dailyCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Daily Sales',
+                        data: [],
+                        borderColor: '#FF9F43',
+                        backgroundColor: 'rgba(255, 159, 67, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#FF9F43'
+                    }]
+                },
+                options: commonOptions
+            });
+
+            monthlyChart = new Chart(monthlyCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Monthly Sales',
+                        data: [],
+                        backgroundColor: 'rgba(255, 159, 67, 0.6)',
+                        borderColor: '#FF9F43',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: commonOptions
+            });
+        }
+
+        // Update daily chart
+        function updateDailyChart() {
+            const metric = document.getElementById('dailyChartMetric').value;
+            const filteredSales = getFilteredSales();
+            
+            // Group sales by date
+            const dailyData = filteredSales.reduce((acc, sale) => {
+                const date = sale.date.split('T')[0];
+                if (!acc[date]) {
+                    acc[date] = {
+                        sales: 0,
+                        profit: 0,
+                        incentives: 0
+                    };
+                }
+                acc[date].sales += sale.salePrice;
+                acc[date].profit += sale.profit;
+                acc[date].incentives += sale.incentive;
+                return acc;
+            }, {});
+
+            // Sort dates
+            const sortedDates = Object.keys(dailyData).sort();
+
+            // Update chart data
+            if (dailyChart) {
+                dailyChart.data.labels = sortedDates.map(date => formatDate(date));
+                dailyChart.data.datasets[0].data = sortedDates.map(date => dailyData[date][metric]);
+                dailyChart.data.datasets[0].label = getMetricLabel(metric);
+                dailyChart.update();
+            }
+        }
+
+        // Update monthly chart
+        function updateMonthlyChart() {
+            const metric = document.getElementById('monthlyChartMetric').value;
+            const filteredSales = getFilteredSales();
+            
+            // Group sales by month
+            const monthlyData = filteredSales.reduce((acc, sale) => {
+                const date = new Date(sale.date);
+                const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                
+                if (!acc[monthKey]) {
+                    acc[monthKey] = {
+                        sales: 0,
+                        profit: 0,
+                        incentives: 0
+                    };
+                }
+                acc[monthKey].sales += sale.salePrice;
+                acc[monthKey].profit += sale.profit;
+                acc[monthKey].incentives += sale.incentive;
+                return acc;
+            }, {});
+
+            // Sort months
+            const sortedMonths = Object.keys(monthlyData).sort();
+
+            // Update chart data
+            if (monthlyChart) {
+                monthlyChart.data.labels = sortedMonths.map(month => {
+                    const [year, monthNum] = month.split('-');
+                    return `${getMonthName(parseInt(monthNum))} ${year}`;
+                });
+                monthlyChart.data.datasets[0].data = sortedMonths.map(month => monthlyData[month][metric]);
+                monthlyChart.data.datasets[0].label = getMetricLabel(metric);
+                monthlyChart.update();
+            }
+        }
+
+        // Helper function to get metric label
+        function getMetricLabel(metric) {
+            switch(metric) {
+                case 'sales': return 'Total Sales';
+                case 'profit': return 'Total Profit';
+                case 'incentives': return 'Total Incentives';
+                default: return 'Value';
+            }
+        }
+
+        // Helper function to get month name
+        function getMonthName(monthNum) {
+            const months = ['January', 'February', 'March', 'April', 'May', 'June',
+                          'July', 'August', 'September', 'October', 'November', 'December'];
+            return months[monthNum - 1];
+        }
+
+        // Helper function to get filtered sales
+        function getFilteredSales() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const endDate = new Date(document.getElementById('endDate').value);
+            const selectedProductId = document.getElementById('productFilter').value;
+            const selectedCategoryId = document.getElementById('categoryFilter').value;
+            const selectedUser = document.getElementById('userFilter').value;
+
+            return allSales
+                .flatMap(inc => inc.details.map(detail => ({
+                    ...detail,
+                    date: inc.date
+                })))
+                .filter(sale => {
+                    const saleDate = new Date(sale.date);
+                    const dateMatch = saleDate >= startDate && saleDate <= endDate;
+                    
+                    // Find the product in allProducts array
+                    const product = allProducts.find(p => p.name === selectedProductId);
+                    const productMatch = !selectedProductId || (product && product.name === sale.productName);
+                    
+                    // Find the category in allCategories array
+                    const category = allCategories.find(c => c.name === selectedCategoryId);
+                    const categoryMatch = !selectedCategoryId || (category && category.name === sale.categoryName);
+
+                    // Match user
+                    const userMatch = !selectedUser || sale.userName.toLowerCase().includes(selectedUser.toLowerCase());
+
+                    return dateMatch && productMatch && categoryMatch && userMatch;
+                });
+        }
+
+        // Load data when page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Initialize charts first
+            initializeCharts();
+            
+            // Then load data
+            await loadInitialData();
+        });
+    </script>
+</body>
+</html>
