@@ -8,17 +8,7 @@ const cors = require('cors');
 const app = express();
 
 // Middleware
-app.use(cors({
-    origin: '*', // Update this with your frontend domain in production
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.use((req, res, next) => {
-    res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.setHeader('X-Frame-Options', 'DENY');
-    res.setHeader('X-XSS-Protection', '1; mode=block');
-    next();
-});
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -30,12 +20,11 @@ let db;
 async function connectToMongoDB() {
     try {
         console.log('Attempting to connect to MongoDB...');
+        
+        // Connect to MongoDB Atlas
         client = await MongoClient.connect(process.env.MONGODB_URI, {
             useNewUrlParser: true,
-            useUnifiedTopology: true,
-            maxPoolSize: 10,
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
+            useUnifiedTopology: true
         });
         
         console.log('Connected to MongoDB Atlas');
@@ -53,8 +42,7 @@ async function connectToMongoDB() {
         
     } catch (error) {
         console.error('MongoDB connection error:', error);
-        // Retry connection after 5 seconds
-        setTimeout(connectToMongoDB, 5000);
+        process.exit(1); // Exit if we can't connect to the database
     }
 }
 
