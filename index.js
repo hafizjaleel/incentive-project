@@ -1078,6 +1078,39 @@ app.post('/api/credit-incentive', async (req, res) => {
     }
 });
 
+// Reset credited amount for user
+app.post('/api/credited-amounts/reset/:userId', async (req, res) => {
+    try {
+        const userId = new ObjectId(req.params.userId);
+        
+        // Update user's credited amount to 0
+        const result = await db.collection('users').updateOne(
+            { _id: userId },
+            { $set: { totalCredited: 0 } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Credited amount reset successfully'
+        });
+
+    } catch (error) {
+        console.error('Error resetting credited amount:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error resetting credited amount',
+            error: error.message
+        });
+    }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Unhandled error:', err);

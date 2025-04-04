@@ -72,10 +72,20 @@
             padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
+            margin-right: 5px;
         }
 
         .credit-btn:hover {
             background-color: #218838;
+        }
+
+        .reset-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
         .loading {
@@ -238,11 +248,14 @@
                             <td>${userData.userName}</td>
                             <td>₹${(userData.totalIncentive || 0).toFixed(2)}</td>
                             <td>₹${totalCredited.toFixed(2)}</td>
-                            <td style='color:red;'>₹${balance.toFixed(2)}</td>
+                            <td style='color:${balance <= 0 ? 'green' : 'red'};'>₹${balance.toFixed(2)}</td>
                             <td>
-                                <button class="credit-btn" onclick="showCreditModal('${userData.userId}', '${userData.userName}')" 
+                                <button class="credit-btn" onclick="showCreditModal('${userData.userId}', '${userData.userName}', ${balance})" 
                                         ${balance <= 0 ? 'disabled' : ''}>
                                     Credit Incentive
+                                </button>
+                                <button class="reset-btn" onclick="resetCreditedAmount('${userData.userId}', '${userData.userName}')">
+                                    Reset Credited
                                 </button>
                             </td>
                         `;
@@ -281,17 +294,28 @@
         }
 
         // Show credit modal
-        function showCreditModal(userId, userName) {
-            document.getElementById('creditUserId').value = userId;
-            document.getElementById('creditModal').style.display = 'block';
-            document.querySelector('#creditModal h2').textContent = `Credit Incentive - ${userName}`;
+        function showCreditModal(userId, userName, balance) {
+            const modal = document.getElementById('creditModal');
+            const amountInput = document.getElementById('creditAmount');
+            const userIdInput = document.getElementById('creditUserId');
+            
+            userIdInput.value = userId;
+            amountInput.value = '';
+            amountInput.max = balance;
+            modal.style.display = 'block';
+            
+            // Set modal title
+            modal.querySelector('h2').textContent = `Credit Incentive - ${userName}`;
+            
+            // Focus on amount input
+            setTimeout(() => amountInput.focus(), 100);
         }
 
         // Close credit modal
         function closeCreditModal() {
-            document.getElementById('creditModal').style.display = 'none';
+            const modal = document.getElementById('creditModal');
+            modal.style.display = 'none';
             document.getElementById('creditForm').reset();
-            document.querySelector('#creditModal h2').textContent = 'Credit Incentive';
         }
 
         // Handle credit form submission
@@ -322,24 +346,7 @@
                 if (data.success) {
                     showMessage(`Successfully credited ₹${amount.toFixed(2)}`, 'success');
                     closeCreditModal();
-                    
-                    // Update the display with the new credited amount
-                    const tbody = document.getElementById('walletTableBody');
-                    const rows = tbody.getElementsByTagName('tr');
-                    for (let row of rows) {
-                        const creditBtn = row.querySelector('.credit-btn');
-                        if (creditBtn && creditBtn.getAttribute('onclick').includes(userId)) {
-                            const cells = row.getElementsByTagName('td');
-                            const totalIncentive = parseFloat(cells[1].textContent.replace('₹', ''));
-                            const totalCredited = data.totalCredited;
-                            const balance = totalIncentive - totalCredited;
-                            
-                            cells[2].textContent = `₹${totalCredited.toFixed(2)}`;
-                            cells[3].textContent = `₹${balance.toFixed(2)}`;
-                            creditBtn.disabled = balance <= 0;
-                            break;
-                        }
-                    }
+                    await loadWalletData(); // Reload table to get updated totals
                 } else {
                     showMessage(data.message || 'Error crediting incentive', 'error');
                 }
@@ -348,6 +355,39 @@
                 showMessage('Error crediting incentive', 'error');
             }
         });
+
+        // Reset credited amount
+        async function resetCreditedAmount(userId, userName) {
+            if (!confirm(`Are you sure you want to reset credited amount for ${userName}?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/credited-amounts/reset/${userId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Reset response:', data);
+
+                if (data.success) {
+                    showMessage('Successfully reset credited amount', 'success');
+                    await loadWalletData();
+                } else {
+                    throw new Error(data.message || 'Failed to reset credited amount');
+                }
+            } catch (error) {
+                console.error('Reset error:', error);
+                showMessage(`Error resetting credited amount: ${error.message}`, 'error');
+            }
+        }
 
         // Close modal when clicking outside
         window.onclick = function(event) {
@@ -361,4 +401,4 @@
         loadWalletData();
     </script>
 </body>
-</html> 
+</html>
