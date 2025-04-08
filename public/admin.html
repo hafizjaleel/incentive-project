@@ -9,16 +9,20 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
         }
 
         .admin-container {
             max-width: 1200px;
             margin: 0 auto;
-            background-color: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            margin-top: 20px;
+            margin-bottom: 20px;
         }
 
         .header {
@@ -26,13 +30,17 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
+            padding: 25px 20px;
+            background: linear-gradient(to right, #4CAF50, #45a049);
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         }
 
         .header h1 {
             margin: 0;
-            color: #333;
+            color: white;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            font-size: 28px;
         }
 
         .header > div {
@@ -48,6 +56,14 @@
             text-decoration: none;
             color: white;
             background-color: #4CAF50;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-weight: 500;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
 
         .incentive-btn {
@@ -70,6 +86,10 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
         }
 
         .users-table th,
@@ -80,12 +100,15 @@
         }
 
         .users-table th {
-            background-color: #f8f9fa;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            color: #2c3e50;
             font-weight: 600;
+            padding: 15px 12px;
         }
 
         .users-table tr:hover {
-            background-color: #f5f5f5;
+            background-color: #f8f9fa;
+            transition: background-color 0.3s ease;
         }
 
         .action-btn {
@@ -135,20 +158,19 @@
         .message {
             padding: 10px;
             margin: 10px 0;
-            border-radius: 4px;
+            border-radius: 8px;
             display: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transform: translateY(-20px);
+            opacity: 0;
+            animation: slideDown 0.3s forwards;
         }
 
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        @keyframes slideDown {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modal {
@@ -166,13 +188,27 @@
             background-color: white;
             margin: 15% auto;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 16px;
             width: 80%;
             max-width: 500px;
             position: relative;
             max-height: 80vh;
             display: flex;
             flex-direction: column;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            border: none;
+            animation: modalAppear 0.3s ease;
+        }
+
+        @keyframes modalAppear {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         #incentiveModal .modal-content {
@@ -436,8 +472,10 @@
 
         /* Add styles for winner row */
         .winner-row {
-            background-color: #fff3cd;
+            background: linear-gradient(to right, #fff3cd, #fff8e6) !important;
             font-weight: bold;
+            position: relative;
+            overflow: hidden;
         }
 
         .winner-row td {
@@ -449,9 +487,19 @@
             margin-right: 8px;
         }
 
+        .winner-row::after {
+            content: '👑';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 20px;
+            opacity: 0.3;
+        }
+
         /* Add styles for top 3 rows */
         .top-3-row {
-            background-color: #f8f9fa;
+            background: linear-gradient(to right, #f8f9fa, #ffffff) !important;
         }
 
         .top-3-row:nth-child(2) td:first-child::before {
@@ -469,6 +517,9 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            margin: 30px 0 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
         }
 
         .month-selector {
@@ -496,10 +547,139 @@
 
         .month-title {
             font-size: 30px;
-            color: #090909;
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: bold;
             text-align: center;
             margin: 10px 0;
             width: 100%;
+        }
+
+        /* Add responsive styles */
+        @media screen and (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .admin-container {
+                padding: 10px;
+                width: 100%;
+                max-width: 100%;
+                margin: 0;
+                box-sizing: border-box;
+            }
+
+            .users-table {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 10px 0;
+            }
+
+            /* Remove the fade effect */
+            .users-table::after {
+                display: none;
+            }
+
+            .users-table thead {
+                display: table-header-group;
+            }
+
+            .users-table tr {
+                display: table-row;
+            }
+
+            .users-table td, 
+            .users-table th {
+                display: table-cell;
+                min-width: 120px; /* Ensure cells don't get too narrow */
+                white-space: nowrap; /* Prevent text wrapping */
+            }
+
+            /* Override the previous card-style data labels */
+            .users-table td::before {
+                display: none;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
+            }
+
+            .section-header .action-btn {
+                text-align: center;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                margin: -10px -10px 15px;
+                padding: 20px 15px;
+                border-radius: 12px 12px 0 0;
+            }
+
+            .header > div {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .header .action-btn {
+                flex: 1;
+                min-width: 140px;
+                text-align: center;
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+
+            /* Hide status and last login columns on mobile */
+            .users-table th:nth-child(2),
+            .users-table th:nth-child(3),
+            .users-table td:nth-child(2),
+            .users-table td:nth-child(3) {
+                display: none;
+            }
+
+            /* Adjust the min-width for remaining columns */
+            .users-table td, 
+            .users-table th {
+                min-width: 100px;
+            }
+
+            /* Make amount columns slightly wider */
+            .users-table td:nth-child(4),
+            .users-table td:nth-child(5),
+            .users-table th:nth-child(4),
+            .users-table th:nth-child(5) {
+                min-width: 130px;
+            }
+
+            /* Hide crown emoji on mobile */
+            .winner-row::after {
+                display: none;
+            }
+
+            /* Make winner row indicator more subtle on mobile */
+            .winner-row {
+                border-left: 4px solid #ffc107;
+            }
+
+            .top-3-row {
+                border-left: 4px solid #e9ecef;
+            }
+
+            /* Hide User Management title on mobile */
+            .title-section h2 {
+                display: none;
+            }
+
+            /* Adjust spacing since title is hidden */
+            .month-title {
+                margin-top: 0;
+            }
         }
     </style>
 </head>
@@ -538,8 +718,8 @@
                     <th>Username</th>
                     <th>Status</th>
                     <th>Last Login</th>
-                    <th>Total Amount Sold</th>
-                    <th>Total Incentive</th>
+                    <th>Amount Sold</th>
+                    <th>Incentive</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -896,16 +1076,16 @@
                     }
 
                     tr.innerHTML = `
-                        <td>${user.username}</td>
-                        <td>${user.status}</td>
-                        <td>${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('en-GB', {
+                        <td data-label="Username">${user.username}</td>
+                        <td data-label="Status">${user.status}</td>
+                        <td data-label="Last Login">${user.lastLogin ? new Date(user.lastLogin).toLocaleDateString('en-GB', {
                             day: '2-digit',
                             month: '2-digit',
                             year: 'numeric'
                         }) : 'Never'}</td>
-                        <td>₹${totalAmountSold.toFixed(2)}</td>
-                        <td>₹${totalIncentive.toFixed(2)}</td>
-                        <td>
+                        <td data-label="Total Amount Sold">₹${totalAmountSold.toFixed(2)}</td>
+                        <td data-label="Total Incentive">₹${totalIncentive.toFixed(2)}</td>
+                        <td data-label="Actions">
                             <button class="action-btn edit-btn" onclick="editUser('${user._id}')">Edit</button>
                             <button class="action-btn delete-btn" onclick="deleteUser('${user._id}')">Delete</button>
                         </td>
@@ -1596,15 +1776,15 @@
                 recentSales.forEach(sale => {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td>${formatDate(sale.date)}</td>
-                        <td>${sale.productName}</td>
-                        <td>${sale.categoryName || 'Uncategorized'}</td>
-                        <td>₹${sale.salePrice.toFixed(2)}</td>
-                        <td>₹${sale.netCost.toFixed(2)}</td>
-                        <td>₹${sale.profit.toFixed(2)}</td>
-                        <td>${sale.userName}</td>
-                        <td>${sale.incentivePercentage}%</td>
-                        <td>₹${sale.incentive.toFixed(2)}</td>
+                        <td data-label="Date">${formatDate(sale.date)}</td>
+                        <td data-label="Product">${sale.productName}</td>
+                        <td data-label="Category">${sale.categoryName || 'Uncategorized'}</td>
+                        <td data-label="Sale Price">₹${sale.salePrice.toFixed(2)}</td>
+                        <td data-label="Net Cost">₹${sale.netCost.toFixed(2)}</td>
+                        <td data-label="Profit">₹${sale.profit.toFixed(2)}</td>
+                        <td data-label="User">${sale.userName}</td>
+                        <td data-label="Incentive %">${sale.incentivePercentage}%</td>
+                        <td data-label="Incentive Amount">₹${sale.incentive.toFixed(2)}</td>
                     `;
                     tbody.appendChild(tr);
                 });
